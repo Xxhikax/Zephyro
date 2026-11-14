@@ -1,0 +1,76 @@
+# Zephyro backend dependencies (Python 3.11).
+# Install: pip install -r requirements.txt && python -m playwright install chromium
+
+# ── Web server ────────────────────────────────────────────────────────────────
+fastapi
+starlette
+uvicorn[standard]
+websockets
+pydantic
+python-multipart            # required by FastAPI File/Form/UploadFile endpoints
+python-dotenv
+httpx>=0.27.0
+requests
+aiohttp
+certifi
+
+# ── LLM providers ─────────────────────────────────────────────────────────────
+langchain-community
+langchain-openai
+langchain-anthropic
+langchain-google-genai
+langchain-ollama            # local tiers (llama3.2:1b / 3b) and embeddings
+anthropic
+openai                      # also the client for DeepSeek's OpenAI-compatible API
+google-genai
+ollama
+tiktoken
+
+# ── Memory and knowledge ──────────────────────────────────────────────────────
+psycopg2-binary
+pgvector
+faiss-cpu>=1.7.0
+networkx>=3.0
+numpy
+
+# ── Web search and scraping ───────────────────────────────────────────────────
+ddgs
+tavily-python
+trafilatura>=1.6.0
+feedparser>=6.0.10
+wikipedia>=1.4.0
+beautifulsoup4>=4.12.0
+
+# ── Browser and desktop automation ────────────────────────────────────────────
+playwright
+playwright-stealth>=1.3.0
+yt-dlp>=2025.1.1            # invoked as a CLI to resolve media URLs without a browser
+mss
+pillow
+psutil
+pygetwindow>=0.0.9
+pyperclip>=1.8.0
+
+# ── Voice ─────────────────────────────────────────────────────────────────────
+faster-whisper>=1.0.3
+sounddevice
+soundfile
+
+# ── Channels, skills and scheduling ───────────────────────────────────────────
+python-telegram-bot>=20.0
+watchdog>=3.0.0             # hot-reload of skills
+PyYAML                      # skill manifests
+apscheduler>=3.10.0
+pytz
+keyring>=25.0.0             # API keys in the OS credential store
+GitPython>=3.1.40
+
+# ── Output and CLI ────────────────────────────────────────────────────────────
+matplotlib                  # server-rendered charts in rich responses
+rich
+textual>=0.80.0
+
+# ── Optional (install manually) ───────────────────────────────────────────────
+# easyocr                   # OCR fallback for image analysis (pulls in PyTorch)
+# spacy>=3.7.0              # NER for the knowledge graph
+# python -m spacy download es_core_news_sm

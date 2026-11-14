@@ -1,0 +1,17 @@
+{
+  "name": "terencio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "dev:linux": "WEBKIT_DISABLE_COMPOSITING_MODE=1 tauri dev",
+    "build": "tauri build",
+    "build:linux": "WEBKIT_DISABLE_COMPOSITING_MODE=1 tauri build",
+    "start": "bash start.sh"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

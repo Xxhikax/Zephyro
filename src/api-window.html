@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis — APIs</title>
+  <!-- Variables compartidas del proyecto -->
+  <link rel="stylesheet" href="./style.css">
+  <!-- Estilos específicos de la ventana APIs -->
+  <link rel="stylesheet" href="./api-window.css">
+</head>
+<body>
+
+<div id="api-app">
+
+  <!-- ── Sidebar izquierdo (240px) ──────────────────────────── -->
+  <aside class="aw-sidebar">
+    <div class="aw-sidebar-header">
+      <div class="aw-logo-title">JARVIS // APIS</div>
+      <div class="aw-logo-sub">Gestión de uso y costos</div>
+    </div>
+
+    <nav id="aw-nav"></nav>
+
+    <div class="aw-sidebar-footer">
+      <span id="aw-footer-cost">COST · —</span>
+      <span id="aw-footer-reqs">REQS · —</span>
+      <button id="aw-refresh" class="aw-btn-ghost" style="margin-top:6px;font-size:10px">↻ Refrescar</button>
+    </div>
+  </aside>
+
+  <!-- ── Panel central ───────────────────────────────────────── -->
+  <main class="aw-main">
+
+    <!-- Panel Providers (uso + keys) -->
+    <section id="aw-panel-providers" class="aw-panel" style="display:flex">
+      <div class="aw-empty">Cargando providers…</div>
+    </section>
+
+    <!-- Panel Activity (log de llamadas) -->
+    <section id="aw-panel-activity" class="aw-panel" style="display:none">
+      <div class="aw-empty">Cargando registro…</div>
+    </section>
+
+  </main>
+</div>
+
+<script src="./api-window.js"></script>
+
+</body>
+</html>

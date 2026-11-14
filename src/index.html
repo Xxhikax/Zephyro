@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephyro OS - Tactical Console</title>
+    <link rel="stylesheet" href="./vendor/katex/katex.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./login.css">
+    <link rel="stylesheet" href="./dashboard.css">
+    <link rel="stylesheet" href="./call-mode.css">
+    <link rel="stylesheet" href="./diagnostic.css">
+    <link rel="stylesheet" href="./agenda.css">
+    <link rel="stylesheet" href="./agenda-window.css">
+    <link rel="stylesheet" href="./compact-mode.css">
+</head>
+
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen active">
+        <canvas id="login-bg-canvas"></canvas>
+
+        <div class="login-grid">
+            <!-- ── TOPBAR ──────────────────────────────────── -->
+            <div id="login-topbar" class="boot-elem">
+                <div class="topbar-left">
+                    <span class="status-dot green topbar-status-dot"></span> SYS_OK
+                    <span class="status-dot green topbar-status-dot"></span> CORE
+                    <span class="status-dot red topbar-status-dot"></span> SEC
+                </div>
+                <div class="topbar-center">ZEPHYRO_OS · TACTICAL COMMAND INTERFACE</div>
+                <div class="topbar-right">
+                    <span id="login-uptime">00:00:00</span>
+                    <span id="login-clock">--:--:-- UTC-05</span>
+                </div>
+            </div>
+
+            <!-- ── LEFT COLUMN ─────────────────────────────── -->
+            <div class="login-col login-col-left" style="grid-row:2;">
+                <!-- SYSTEM_TELEMETRY -->
+                <div id="telemetry-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">SYSTEM_TELEMETRY</div>
+                    <div class="panel-content">
+                        <div class="telemetry-row" data-key="cpu_load">
+                            <span class="telemetry-label">cpu_load</span>
+                            <span class="telemetry-value">--</span>
+                            <div class="telemetry-bar-track"><div class="telemetry-bar-fill"></div></div>
+                        </div>
+                        <div class="telemetry-row" data-key="mem_free">
+                            <span class="telemetry-label">mem_free</span>
+                            <span class="telemetry-value">--</span>
+                        </div>
+                        <div class="telemetry-row" data-key="gpu_temp">
+                            <span class="telemetry-label">gpu_temp</span>
+                            <span class="telemetry-value">--</span>
+                        </div>
+                        <div class="telemetry-row" data-key="net_latency">
+                            <span class="telemetry-label">net_latency</span>
+                            <span class="telemetry-value">--</span>
+                        </div>
+                        <div class="telemetry-row" data-key="inference">
+                            <span class="telemetry-label">inference</span>
+                            <span class="telemetry-value">--</span>
+                        </div>
+                        <div class="telemetry-row" data-key="vectors">
+                            <span class="telemetry-label">vectors</span>
+                            <span class="telemetry-value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NETWORK_MAP -->
+                <div id="network-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">NETWORK_MAP</div>
+                    <div class="panel-content"></div>
+                </div>
+            </div>
+
+            <!-- ── CENTER COLUMN ───────────────────────────── -->
+            <div class="login-col login-col-center" style="grid-row:2;">
+                <div id="orb-container" class="boot-elem"></div>
+
+                <div id="login-title-block" class="boot-elem">
+                    <span class="jarvis-title">Zephyro</span>
+                    <span class="jarvis-subtitle">Tactical Command Interface</span>
+                </div>
+
+                <!-- Warning panel -->
+                <div id="warning-panel" class="hud-panel boot-elem" style="visibility:hidden; width:100%; max-width:300px;">
+                    <div class="hud-panel-title">⚠ WARNINGS</div>
+                    <div class="panel-content"></div>
+                </div>
+
+                <div id="login-form-container" class="boot-elem">
+                    <div class="hud-input-group">
+                        <label class="hud-input-label" for="password-input">ACCESS_CODE</label>
+                        <input type="password" id="password-input" class="hud-input" placeholder="vacío → invitado" autocomplete="off">
+                    </div>
+                    <button id="login-btn" class="hud-btn" style="margin-bottom:6px;">▶ AUTENTICAR</button>
+                    <button id="guest-btn" class="hud-btn" style="opacity:0.6;">◈ MODO INVITADO</button>
+                    <p id="login-message" class="hud-error"></p>
+                </div>
+
+                <div id="login-encrypted" class="boot-elem">AES-256-GCM · TLS 1.3 · ZERO-KNOWLEDGE</div>
+            </div>
+
+            <!-- ── RIGHT COLUMN ────────────────────────────── -->
+            <div class="login-col login-col-right" style="grid-row:2;">
+                <!-- ACTIVE_MODULES -->
+                <div id="modules-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">ACTIVE_MODULES</div>
+                    <div class="panel-content"></div>
+                </div>
+
+                <!-- AGENT_ROUTING -->
+                <div id="routing-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">AGENT_ROUTING</div>
+                    <div class="panel-content"></div>
+                </div>
+
+                <!-- LAST_EVENTS -->
+                <div id="events-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">LAST_EVENTS</div>
+                    <div class="panel-content"></div>
+                </div>
+
+                <!-- SECURITY -->
+                <div id="security-panel" class="hud-panel boot-elem">
+                    <div class="hud-panel-title">SECURITY</div>
+                    <div class="panel-content"></div>
+                </div>
+            </div>
+
+            <!-- ── BOTTOMBAR ───────────────────────────────── -->
+            <div id="login-bottombar" class="boot-elem">
+                <span>F1 HELP · F2 DIAG · F3 LOGS</span>
+                <span>LIMA, PE · 190.233.x.x</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Chat -->
+    <div id="chat-screen" class="screen">
+        <canvas id="dash-particles"></canvas>
+
+        <div class="dash-layout">
+            <!-- ── HEADER ──────────────────────────────────── -->
+            <header class="dash-header">
+                <div class="dash-header-left">
+                    <span class="dash-header-val">ZEPHYRO_OS</span>
+                    <span id="system-version" class="dash-header-val" style="opacity:0.6">v1.4.2</span>
+                    <span class="dash-header-sep">│</span>
+                    <span class="dash-header-label">MODE</span>
+                    <span id="mode-value" class="dash-header-val">LOCAL</span>
+                    <span class="dash-header-sep">│</span>
+                    <span class="dash-header-label">WS</span>
+                    <span class="dot green" id="dot-ws"></span>
+                    <span id="ws-latency" class="dash-header-val">ONLINE</span>
+                    <span class="dash-header-sep">│</span>
+                    <span class="dash-header-label">CORE</span>
+                    <span class="dot amber" id="dot-core"></span>
+                    <span id="core-status" data-state="disconnected" class="dash-header-val amber">DEGRADED</span>
+                    <span class="dash-header-sep">│</span>
+                    <span class="dash-header-label">STATE</span>
+                    <span id="ws-state" data-state="DISCONNECTED" class="dash-header-val">CONNECTED</span>
+                </div>
+                <div class="dash-header-right">
+                    <span id="context-chip" class="context-chip context-chip--idle" title="Contexto detectado">
+                        <span class="context-chip__icon">◆</span>
+                        <span class="context-chip__label">—</span>
+                    </span>
+                    <span class="dash-header-sep">│</span>
+                    <span id="dash-clock" class="dash-header-val" style="font-variant-numeric:tabular-nums">--:--:--</span>
+                    <span class="dash-header-sep">│</span>
+                    <span class="dash-header-label">USER</span>
+                    <span id="system-user" class="dash-header-val">BRUNO / ADMIN</span>
+                    <button id="logout-btn" class="dash-logout-btn">LOGOUT</button>
+                </div>
+            </header>
+
+            <!-- ── SIDEBAR LEFT (220px) ────────────────────── -->
+            <aside class="dash-left">
+
+                <!-- 1. ROUTING_TIER -->
+                <div>
+                    <div class="dash-label">┌─ ROUTING_TIER</div>
+                    <div class="seg-toggle">
+                        <button class="seg-toggle-btn active" data-mode="local">LOCAL</button>
+                        <button class="seg-toggle-btn" data-mode="cloud">CLOUD</button>
+                    </div>
+                    <!-- Hidden select for chat.js compat -->
+                    <select id="mode-selector" style="display:none">
+                        <option value="local" selected>LOCAL</option>
+                        <option value="auto">AUTO</option>
+                        <option value="cloud">CLOUD</option>
+                    </select>
+                </div>
+
+                <!-- 2. PROVIDER -->
+                <div>
+                    <div class="dash-label">┌─ PROVIDER</div>
+                    <div class="dash-provider-row">
+                        <select id="provider-selector" class="dash-provider-select">
+                            <option value="auto" selected>AUTO</option>
+                            <option value="gemini">GEMINI</option>
+                            <option value="deepseek">DEEPSEEK</option>
+                            <option value="openai">OPENAI</option>
+                            <option value="anthropic">ANTHROPIC</option>
+                        </select>
+                        <button id="provider-apply-btn" class="dash-chevron-btn" title="Apply">▾</button>
+                    </div>
+                </div>
+
+                <!-- 3. MODEL_ROUTING -->
+                <div id="anthropic-model-section" class="model-section" data-provider="anthropic" style="display:none">
+                    <div class="dash-label">┌─ MODEL_ROUTING</div>
+                    <div class="model-row" data-model="claude-haiku-5-5">
+                        <span class="model-name">haiku_5.5</span>
+                        <span class="tier-badge">T1</span>
+                    </div>
+                    <div class="model-row active" data-model="claude-sonnet-5-5">
+                        <span class="model-name">sonnet_5.5</span>
+                        <span class="tier-badge">T2</span>
+                    </div>
+                    <div class="model-row" data-model="claude-opus-5-5">
+                        <span class="model-name">opus_5.5</span>
+                        <span class="tier-badge">T3</span>
+                    </div>
+                    <div class="model-row" data-model="claude-fable-5-1">
+                        <span class="model-name">fable_5.1</span>
+                        <span class="tier-badge">T4</span>
+                    </div>
+                    <span id="anthropic-model-active" style="display:none">claude-sonnet-5-5</span>
+                </div>
+                <div id="deepseek-model-section" class="model-section" data-provider="deepseek" style="display:none">
+                    <div class="dash-label">┌─ MODEL_ROUTING</div>
+                    <div class="model-row active" data-model="deepseek-flash">
+                        <span class="model-name">deepseek_v4_flash</span>
+                        <span class="tier-badge">T1</span>
+                    </div>
+                    <div class="model-row" data-model="deepseek-v4-pro">
+                        <span class="model-name">deepseek_v4_pro</span>
+                        <span class="tier-badge">T2</span>
+                    </div>
+                </div>
+
+                <!-- 4. STT_ENGINE -->
+                <div id="stt-engine-section">
+                    <div class="dash-label">┌─ STT_ENGINE</div>
+                    <div class="seg-toggle">
+                        <button class="seg-toggle-btn stt-engine-btn active" data-engine="local">LOCAL</button>
+                        <button class="seg-toggle-btn stt-engine-btn" data-engine="groq">GROQ</button>
+                    </div>
+                </div>
+
+                <!-- 5. AUDIO -->
+                <div>
+                    <div class="dash-label">┌─ AUDIO</div>
+                    <div class="dash-btn-grid-3">
+                        <button id="voice-btn" class="dash-btn" title="Mantén pulsado para hablar">●VOICE</button>
+                        <button id="tts-btn" class="dash-btn" title="Respuesta por voz">TTS<br><span style="font-size:7px;opacity:0.5">OFF</span></button>
+                        <button id="call-btn" class="dash-btn">CAL<br><span style="font-size:7px;opacity:0.5">OFF</span></button>
+                    </div>
+                </div>
+
+                <!-- 5.1 TTS_ENGINE -->
+                <div id="tts-engine-section">
+                    <div class="dash-label">┌─ TTS_ENGINE</div>
+                    <div class="seg-toggle">
+                        <button class="seg-toggle-btn tts-engine-btn active" data-engine="local">LOCAL</button>
+                        <button class="seg-toggle-btn tts-engine-btn" data-engine="fishaudio">FISHAUDIO</button>
+                    </div>
+                </div>
+
+                <!-- 6. VISION -->
+                <div>
+                    <div class="dash-label">┌─ VISION</div>
+                    <div class="dash-btn-grid-2">
+                        <button id="attach-img-btn" class="dash-btn" title="Adjuntar imagen">☐ IMG</button>
+                        <button id="vision-btn" class="dash-btn" title="Observación continua">WATCH</button>
+                    </div>
+                </div>
+                <input type="file" id="image-file-input" accept="image/*" style="display:none">
+
+                <!-- 7. IO_DEVICES -->
+                <div>
+                    <div class="dash-label">┌─ IO_DEVICES</div>
+                    <div class="io-row"><span class="io-name">▸ voice_in</span><span class="io-val ready" id="io-voice">READY</span></div>
+                    <div class="io-row"><span class="io-name">▸ tts_out</span><span class="io-val off" id="io-tts">OFF</span></div>
+                    <div class="io-row"><span class="io-name">▸ call_mode</span><span class="io-val off" id="io-call">OFF</span></div>
+                    <div class="io-row"><span class="io-name">▸ vision</span><span class="io-val ready" id="io-vision">READY</span></div>
+                    <div class="io-row"><span class="io-name">▸ watch</span><span class="io-val off" id="io-watch">OFF</span></div>
+                </div>
+
+                <!-- 8. SYSTEM -->
+                <div>
+                    <div class="dash-label">┌─ SYSTEM</div>
+                    <button id="history-btn" class="dash-btn" style="width:100%">⊞ HISTORY</button>
+                    <button id="open-health-btn" class="dash-btn" style="width:100%;margin-top:4px" title="Abrir panel de Salud">❤️ Salud</button>
+                    <button id="open-api-btn" class="dash-btn" style="width:100%;margin-top:4px" title="Gestión de uso y costos de APIs">⚡ APIs</button>
+                </div>
+
+                <!-- 9. BACKEND_MODULES -->
+                <div>
+                    <div class="dash-label">┌─ BACKEND_MODULES</div>
+                    <div class="mod-row" data-module="WS CHAT" data-state="DISCONNECTED">
+                        <span>ws_chat</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                    <div class="mod-row" data-module="REST VOICE" data-state="DISCONNECTED">
+                        <span>rest_voice</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                    <div class="mod-row" data-module="REST VISION" data-state="DISCONNECTED">
+                        <span>rest_vision</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                    <div class="mod-row" data-module="REST FILES" data-state="DISCONNECTED">
+                        <span>rest_files</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                    <div class="mod-row" data-module="AUTH" data-state="DISCONNECTED">
+                        <span>auth</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                    <div class="mod-row" data-module="INFERENCE_GPU" data-state="DISCONNECTED">
+                        <span>inference_gpu</span>
+                        <span class="mod-dot amber gpu-spin">◐</span>
+                    </div>
+                    <div class="mod-row" data-module="HISTORY" data-state="DISCONNECTED">
+                        <span>telegram</span>
+                        <span class="mod-dot dim">●</span>
+                    </div>
+                </div>
+
+                <!-- 10. ADMIN_TOOLS -->
+                <div id="admin-tools-section" style="display:none">
+                    <div class="dash-label">┌─ ADMIN_TOOLS</div>
+                    <div class="dash-btn-grid-3">
+                        <button id="prov-fab" class="dash-btn"><span class="admin-btn-dot prov-dot"></span>PROVDR</button>
+                        <button id="drafts-fab" class="dash-btn"><span id="drafts-fab-label">DRAFTS</span></button>
+                        <button id="diag-fab" class="dash-btn"><span class="admin-btn-dot diag-dot"></span>DIAG</button>
+                    </div>
+                    <!-- Botones de actualización — solo visibles cuando el backend tiene cambios sin aplicar -->
+                    <div id="backend-update-bar" class="dash-btn-grid-2" style="margin-top:4px;display:none">
+                        <button id="reload-config-btn" class="dash-btn" title="Recarga .env y reinicia clientes LLM sin downtime">↺ RELOAD</button>
+                        <button id="restart-backend-btn" class="dash-btn" title="Reinicia el proceso completo (~2.5s)">⟳ RESTART</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Resize handle left -->
+            <div class="dash-resize-handle" data-resize="left"></div>
+
+            <!-- ── TERMINAL CENTER ─────────────────────────── -->
+            <section class="dash-center terminal-panel">
+                <div class="dash-terminal-header">
+                    <span>▸ <span class="term-path">TERMINAL :: ws://127.0.0.1:8000/stream</span></span>
+                    <span class="term-buf">buffer: <span id="term-buf-count" style="font-variant-numeric:tabular-nums">0</span>/1024</span>
+                </div>
+
+                <main id="terminal-output" class="dash-terminal-body terminal-output"></main>
+
+                <!-- Attachment bar -->
+                <div id="attachment-bar" class="dash-attach-bar" style="display:none">
+                    <div class="dash-attach-info">
+                        <span id="attachment-name"></span>
+                        <img id="attachment-thumb" class="dash-attach-thumb" style="display:none">
+                    </div>
+                    <button id="attachment-remove" class="dash-attach-remove">✕</button>
+                </div>
+
+                <!-- Pomodoro sticky bar — visible during active Pomodoro sessions -->
+                <div id="pomo-chat-bar" style="display:none">
+                    <span class="pomo-icon">&#9201;</span>
+                    <span class="pomo-label" id="pomo-chat-label">POMO #1/4</span>
+                    <span class="pomo-phase" id="pomo-chat-phase">TRABAJO</span>
+                    <span class="pomo-time"  id="pomo-chat-time">25:00</span>
+                    <button id="pomo-pause-btn"  class="pomo-ctl-btn" title="Pausar / reanudar">&#9208;</button>
+                    <button id="pomo-extend-btn" class="pomo-ctl-btn" title="+5 min al ciclo actual">+5</button>
+                    <button id="pomo-stop-btn"   class="pomo-stop-btn">STOP</button>
+                </div>
+
+                <footer class="dash-terminal-input">
+                    <span class="dash-prompt">&gt;_</span>
+                    <input id="message-input" class="dash-input" type="text" autocomplete="off" placeholder="type command or message...">
+                    <button id="reason-btn" class="dash-footer-btn" title="Razonamiento profundo">THINK</button>
+                    <button id="send-btn" class="dash-exec-btn">▶ EXEC</button>
+                </footer>
+            </section>
+
+            <!-- Resize handle right -->
+            <div class="dash-resize-handle" data-resize="right"></div>
+
+            <!-- ── PANEL RIGHT (260px) ─────────────────────── -->
+            <aside class="dash-right">
+
+                <!-- 0. AGENDA -->
+                <div id="agenda-panel">
+                    <div class="dash-label">┌─ AGENDA
+                        <button id="agenda-open-btn" title="Abrir agenda en ventana aparte">↗</button>
+                        <button id="agenda-refresh-btn" title="Refrescar">↻</button>
+                    </div>
+                    <div id="agenda-list">
+                        <div class="agenda-empty">cargando…</div>
+                    </div>
+                </div>
+
+                <!-- 1. LIVE_TELEMETRY -->
+                <div>
+                    <div class="dash-label">┌─ LIVE_TELEMETRY</div>
+                    <div class="telem-row">
+                        <div class="telem-header">
+                            <span class="telem-label">cpu</span>
+                            <span class="telem-value" id="telem-val-cpu">--</span>
+                        </div>
+                        <div class="telem-track"><div class="telem-fill" id="telem-fill-cpu"></div></div>
+                    </div>
+                    <div class="telem-row">
+                        <div class="telem-header">
+                            <span class="telem-label">ram</span>
+                            <span class="telem-value" id="telem-val-ram">--</span>
+                        </div>
+                        <div class="telem-track"><div class="telem-fill" id="telem-fill-ram"></div></div>
+                    </div>
+                    <div class="telem-row">
+                        <div class="telem-header">
+                            <span class="telem-label">vram</span>
+                            <span class="telem-value" id="telem-val-vram">--</span>
+                        </div>
+                        <div class="telem-track"><div class="telem-fill" id="telem-fill-vram"></div></div>
+                    </div>
+                    <div class="telem-row">
+                        <div class="telem-header">
+                            <span class="telem-label">gpu_temp</span>
+                            <span class="telem-value" id="telem-val-gputemp">--</span>
+                        </div>
+                        <div class="telem-track"><div class="telem-fill" id="telem-fill-gputemp"></div></div>
+                    </div>
+                    <div class="telem-row" style="border:none">
+                        <div class="telem-header">
+                            <span class="telem-label">net_up</span>
+                            <span class="telem-value" id="telem-val-netup">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ACTIVE_SKILLS -->
+                <div>
+                    <div class="dash-label">┌─ ACTIVE_SKILLS <span id="dash-skills-count" style="font-variant-numeric:tabular-nums">[0]</span></div>
+                    <div id="dash-skills-list"></div>
+                </div>
+
+                <!-- 3. PENDING_PROPOSALS -->
+                <div>
+                    <div class="dash-label">┌─ PENDING_PROPOSALS</div>
+                    <div class="proposal-card warn">
+                        <div><span class="proposal-icon warn">△</span> <span class="proposal-desc">#0047 — restart inference_gpu service</span></div>
+                        <div class="proposal-meta">2m ago</div>
+                    </div>
+                    <div class="proposal-card" style="margin-top:4px">
+                        <div><span class="proposal-icon info">◆</span> <span class="proposal-desc">#0048 — new skill: voice_memo.py</span></div>
+                        <div class="proposal-meta">5m ago</div>
+                    </div>
+                </div>
+
+                <!-- 4. REQUEST_LOG -->
+                <div>
+                    <div class="dash-label">┌─ REQUEST_LOG</div>
+                    <div id="dash-req-log"></div>
+                </div>
+            </aside>
+
+            <!-- ── FOOTER ──────────────────────────────────── -->
+            <footer class="dash-footer">
+                <div class="footer-keys">
+                    <span><kbd>[F1]</kbd> HELP</span>
+                    <span><kbd>[F2]</kbd> DIAG</span>
+                    <span><kbd>[F3]</kbd> LOGS</span>
+                    <span><kbd>[F4]</kbd> SHELL</span>
+                    <span><kbd>[F5]</kbd> RELOAD</span>
+                    <span><kbd>[F9]</kbd> EMERGENCY</span>
+                </div>
+                <div class="footer-stats">
+                    <span>ws_tx: <span id="dash-ws-tx" style="font-variant-numeric:tabular-nums">0.0 KB/s</span></span>
+                    <span>·</span>
+                    <span>ws_rx: <span id="dash-ws-rx" style="font-variant-numeric:tabular-nums">0.0 KB/s</span></span>
+                    <span>·</span>
+                    <span>ping: <span id="dash-ping" style="font-variant-numeric:tabular-nums">--</span></span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- History Panel Overlay -->
+    <div id="history-overlay" class="history-overlay">
+        <div class="history-container">
+            <div class="history-header">
+                <div class="history-header-left">
+                    <span class="history-icon">▤</span>
+                    <h3>CONVERSATION HISTORY</h3>
+                </div>
+                <div class="history-header-right">
+                    <div class="history-search-box">
+                        <input id="history-search" type="text" placeholder="search..." autocomplete="off">
+                    </div>
+                    <button id="new-conv-btn" class="mini-btn accent-btn" title="Nueva conversación">+ NEW</button>
+                    <button id="history-close-btn" class="mini-btn">✕ CLOSE</button>
+                </div>
+            </div>
+            <div class="history-stats-bar" id="history-stats-bar">
+                <span id="hist-stat-total">Total: --</span>
+                <span id="hist-stat-important">Important: --</span>
+            </div>
+            <div class="history-filter-bar">
+                <button class="filter-chip active" data-filter="all">ALL</button>
+                <button class="filter-chip" data-filter="critical">CRITICAL</button>
+                <button class="filter-chip" data-filter="important">IMPORTANT</button>
+                <button class="filter-chip" data-filter="normal">NORMAL</button>
+                <button class="filter-chip" data-filter="trivial">TRIVIAL</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <div class="history-empty">Click HISTORY to load conversations.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversation Detail Modal -->
+    <div id="conv-detail-modal" class="conv-detail-modal">
+        <div class="conv-detail-container">
+            <div class="conv-detail-header">
+                <h3 id="conv-detail-title">Conversation</h3>
+                <button id="conv-detail-close" class="mini-btn">✕</button>
+            </div>
+            <div id="conv-detail-body" class="conv-detail-body"></div>
+            <div class="conv-detail-actions">
+                <button id="conv-detail-delete" class="mini-btn danger-btn">DELETE</button>
+                <button id="conv-detail-resume" class="mini-btn accent-btn">RESUME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Mode Tactical HUD Overlay -->
+    <div id="call-overlay" class="call-overlay">
+        <canvas id="call-matrix-bg" class="call-matrix-bg"></canvas>
+
+        <div class="call-hud">
+            <!-- Header -->
+            <div class="call-header">
+                <div class="call-header-status">CALL_ACTIVE</div>
+                <div class="call-header-sep"></div>
+                <div class="call-header-field">
+                    <span class="hf-label">DUR</span>
+                    <span class="hf-value" id="call-hdr-duration">00:00:00</span>
+                </div>
+                <div class="call-header-field" id="pomo-hdr-field" style="display:none">
+                    <span class="hf-label">POMO</span>
+                    <span class="hf-value" id="call-pomo-countdown">25:00</span>
+                </div>
+                <div class="call-header-field" id="pomo-hdr-cycle" style="display:none">
+                    <span class="hf-label">CICLO</span>
+                    <span class="hf-value" id="call-pomo-cycle">1/4</span>
+                </div>
+                <div class="call-header-field pomo-ctl-group" id="pomo-hdr-controls" style="display:none">
+                    <button id="call-pomo-pause-btn"  class="call-pomo-btn" title="Pausar / reanudar">&#9208;</button>
+                    <button id="call-pomo-skip-btn"   class="call-pomo-btn" title="Saltar descanso">&#9197;</button>
+                    <button id="call-pomo-extend-btn" class="call-pomo-btn" title="+5 min al ciclo actual">+5</button>
+                </div>
+                <div class="call-header-field">
+                    <span class="hf-label">CODEC</span>
+                    <span class="hf-value" id="call-hdr-codec">OPUS/48k</span>
+                </div>
+                <div class="call-header-field">
+                    <span class="hf-label">LAT</span>
+                    <span class="hf-value" id="call-hdr-latency">—</span>
+                </div>
+                <div class="call-header-field">
+                    <span class="hf-label">STT</span>
+                    <span class="hf-value" id="call-hdr-stt">WHISPER_LOCAL</span>
+                </div>
+                <div class="call-header-field">
+                    <span class="hf-label">MODEL</span>
+                    <span class="hf-value" id="call-hdr-model">—</span>
+                </div>
+                <div class="call-header-field">
+                    <span class="hf-label">session ::</span>
+                    <span class="hf-value" id="call-hdr-session">#—</span>
+                </div>
+                <div class="call-header-spacer"></div>
+                <button class="call-header-btn" id="call-btn-min" title="Minimize">
+                    <span>MIN</span><span class="hb-icon">▫</span>
+                </button>
+                <button class="call-header-btn" id="call-btn-bg" title="Background mode">
+                    <span>BG</span><span class="hb-icon">↘</span>
+                </button>
+            </div>
+
+            <!-- Left column -->
+            <div class="call-col-left">
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">AUDIO_INPUT</div>
+                    <div class="call-vu">
+                        <div class="call-vu-head">
+                            <span class="call-vu-label">mic_gain</span>
+                            <span class="call-vu-value" id="call-vu-value">0.00</span>
+                        </div>
+                        <div class="call-vu-bars" id="call-vu-bars">
+                            <div class="vu-cell"></div><div class="vu-cell"></div>
+                            <div class="vu-cell"></div><div class="vu-cell"></div>
+                            <div class="vu-cell"></div><div class="vu-cell"></div>
+                            <div class="vu-cell"></div><div class="vu-cell"></div>
+                            <div class="vu-cell"></div><div class="vu-cell"></div>
+                        </div>
+                        <div class="call-vu-meta">
+                            <span class="meta-line">device: <span id="call-vu-device">—</span></span>
+                            <span class="meta-line">sample: <span id="call-vu-sample">16kHz/mono</span></span>
+                            <span class="meta-line">noise_gate: <span id="call-vu-gate">-42dB</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">VAD_STATUS</div>
+                    <div class="call-vad-row inactive" id="call-vad-row">silence</div>
+                    <div class="call-vad-metrics">
+                        <span>speech_prob:</span><span class="vm-val" id="call-vad-prob">0.00</span>
+                        <span>silence_ms:</span><span class="vm-val" id="call-vad-silence">0</span>
+                        <span>chunks_rx:</span><span class="vm-val" id="call-vad-chunks">0</span>
+                    </div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">PIPELINE</div>
+                    <div class="call-pipeline">
+                        <div class="call-pipe-step" id="call-pipe-mic">
+                            <span>mic → stt</span><span class="pipe-arrow">▸</span>
+                        </div>
+                        <div class="call-pipe-step" id="call-pipe-stt">
+                            <span>stt → llm</span><span class="pipe-arrow">▸</span>
+                        </div>
+                        <div class="call-pipe-step" id="call-pipe-llm">
+                            <span>llm → tts</span><span class="pipe-arrow">—</span>
+                        </div>
+                        <div class="call-pipe-step" id="call-pipe-tts">
+                            <span>tts → out</span><span class="pipe-arrow">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">LATENCY</div>
+                    <div class="call-lat">
+                        <span class="lat-k">stt_avg</span><span class="lat-v" id="call-lat-stt">—</span>
+                        <span class="lat-k">llm_avg</span><span class="lat-v" id="call-lat-llm">—</span>
+                        <span class="lat-k">tts_avg</span><span class="lat-v warn" id="call-lat-tts">—</span>
+                        <span class="lat-k">total</span><span class="lat-v" id="call-lat-total">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center column -->
+            <div class="call-col-center">
+                <div class="call-orb-wrap">
+                    <div class="call-orb-heading">
+                        <div class="call-orb-phase p-idle" id="call-phase-label">STANDBY</div>
+                        <div class="call-orb-subtitle">ZEPHYRO · NEURAL_VOICE_CHANNEL</div>
+                    </div>
+                    <div class="call-orb-container" id="call-orb-container"></div>
+                </div>
+
+                <div class="call-status-banner" id="call-status-banner">
+                    <span class="call-status-spinner"></span>
+                    <span class="call-status-text" id="call-status-text"></span>
+                </div>
+
+                <div class="call-transcript-wrap">
+                    <div class="call-transcript-head">
+                        <span>LIVE_TRANSCRIPT</span>
+                        <span>buffer: 4 turns</span>
+                    </div>
+                    <div class="call-transcript" id="call-transcript"></div>
+                </div>
+            </div>
+
+            <!-- Right column -->
+            <div class="call-col-right">
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">SESSION_METRICS</div>
+                    <div class="call-metrics-grid">
+                        <span class="m-k">turns</span><span class="m-v" id="call-m-turns">0</span>
+                        <span class="m-k">tokens_in</span><span class="m-v" id="call-m-tokin">0</span>
+                        <span class="m-k">tokens_out</span><span class="m-v" id="call-m-tokout">0</span>
+                        <span class="m-k">interrupts</span><span class="m-v" id="call-m-inter">0</span>
+                        <span class="m-k">cost_est</span><span class="m-v" id="call-m-cost">$0.000</span>
+                    </div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">ACTIVE_CONTEXT</div>
+                    <div id="call-context-list"></div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">SPECTRUM</div>
+                    <div class="call-mini-spectrum idle" id="call-spectrum">
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                        <div class="ms-bar"></div><div class="ms-bar"></div>
+                    </div>
+                </div>
+
+                <div class="call-panel">
+                    <span class="call-panel-br-bl"></span><span class="call-panel-br-br"></span>
+                    <div class="call-panel-title">QUICK_ACTIONS</div>
+                    <button class="call-quick-action" id="call-btn-ptt">
+                        <span>VAD_ACTIVE</span><span class="qa-shortcut"></span>
+                    </button>
+                    <button class="call-quick-action" id="call-btn-interrupt">
+                        <span>INTERRUPT</span><span class="qa-shortcut">[esc]</span>
+                    </button>
+                    <button class="call-quick-action" id="call-qa-logs">
+                        <span>SHOW_LOGS</span><span class="qa-shortcut">[F3]</span>
+                    </button>
+                    <button class="call-quick-action" id="call-qa-switch">
+                        <span>ROUTE</span><span class="qa-shortcut"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="call-controls">
+                <button class="call-ctrl-btn" id="call-btn-mute" title="Mute">◉</button>
+                <button class="call-ctrl-btn" id="call-btn-ptt-circle" title="VAD indicator (passive)">●</button>
+                <button class="call-ctrl-btn" id="call-btn-speaker" title="Speaker" style="display:none">♪</button>
+                <button class="call-ctrl-btn" id="call-btn-pause" title="Pause">❙❙</button>
+                <div class="call-ctrl-divider"></div>
+                <button class="call-ctrl-wide" id="call-btn-background">
+                    <span>↘</span><span>BACKGROUND</span>
+                </button>
+                <button class="call-ctrl-end" id="call-btn-end">END_CALL</button>
+            </div>
+
+            <!-- Footer -->
+            <div class="call-footer">
+                <div class="call-footer-kb"><span class="kb-key">[ESC]</span><span class="kb-label">INTERRUPT</span></div>
+                <div class="call-footer-kb"><span class="kb-key">[M]</span><span class="kb-label">MUTE</span></div>
+                <div class="call-footer-kb"><span class="kb-key">[B]</span><span class="kb-label">BG</span></div>
+                <div class="call-footer-kb"><span class="kb-key">[F3]</span><span class="kb-label">LOGS</span></div>
+                <div class="call-footer-end">
+                    <span><span class="fe-mark">encrypted</span> · e2e · whisper_local+opus_4.7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./config.js"></script>
+    <script src="./login.js"></script>
+    <script src="./auth.js"></script>
+    <script src="./websocket.js"></script>
+    <script src="./vendor/purify.min.js"></script>
+    <script src="./vendor/marked.min.js"></script>
+    <script src="./vendor/katex/katex.min.js"></script>
+    <script src="./vendor/mermaid.min.js"></script>
+    <script src="./rich-render.js"></script>
+    <script src="./dashboard.js"></script>
+    <script src="./call-state.js"></script>
+    <script src="./call-orb-visualizer.js"></script>
+    <script src="./call-matrix.js"></script>
+    <script src="./call-mode.js"></script>
+    <script src="./chat.js"></script>
+    <script src="./diagnostic.js"></script>
+    <script src="./terminal-approval.js"></script>
+    <script src="./providers.js"></script>
+    <script src="./skill-drafts.js"></script>
+    <script src="./particles.js"></script>
+    <script src="./agenda.js"></script>
+    <script src="./notifications.js"></script>
+    <script src="./system.js"></script>
+    <script src="./compact-mode.js"></script>
+    <script>
+      // Abre la ventana de Salud via comando Rust (más robusto que la API JS
+      // de WebviewWindow en Tauri 2, que requiere capabilities adicionales).
+      document.getElementById('open-health-btn')?.addEventListener('click', async function () {
+        try {
+          const invoke = window.__TAURI__?.core?.invoke || window.__TAURI__?.invoke;
+          if (!invoke) {
+            console.error('[health-btn] Tauri no disponible en este contexto');
+            return;
+          }
+          const result = await invoke('open_health_window');
+          console.log('[health-btn] open_health_window →', result);
+        } catch (e) {
+          console.error('[health-btn] No pude abrir la ventana Salud:', e);
+        }
+      });
+
+      // Abre la ventana de gestión de APIs via comando Rust.
+      document.getElementById('open-api-btn')?.addEventListener('click', async function () {
+        try {
+          const invoke = window.__TAURI__?.core?.invoke || window.__TAURI__?.invoke;
+          if (!invoke) {
+            console.error('[api-btn] Tauri no disponible en este contexto');
+            return;
+          }
+          const result = await invoke('open_api_window');
+          console.log('[api-btn] open_api_window →', result);
+        } catch (e) {
+          console.error('[api-btn] No pude abrir la ventana APIs:', e);
+        }
+      });
+
+      // Abre la Agenda como ventana aparte (antes era un panel flotante draggable).
+      document.getElementById('agenda-open-btn')?.addEventListener('click', async function () {
+        try {
+          const invoke = window.__TAURI__?.core?.invoke || window.__TAURI__?.invoke;
+          if (!invoke) {
+            console.error('[agenda-btn] Tauri no disponible en este contexto');
+            return;
+          }
+          const result = await invoke('open_agenda_window');
+          console.log('[agenda-btn] open_agenda_window →', result);
+        } catch (e) {
+          console.error('[agenda-btn] No pude abrir la ventana Agenda:', e);
+        }
+      });
+    </script>
+</body>
+
+</html>

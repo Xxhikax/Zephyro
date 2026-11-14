@@ -1,0 +1,9 @@
+.venv/
+data/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+dbt/.user.yml

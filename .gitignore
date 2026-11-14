@@ -1,0 +1,101 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# === Backend Storage (local data) ===
+backend/storage/
+backend/backend/storage/
+*.db
+*.bak
+
+# === Tauri runtime storage (local data, regenerated — never commit) ===
+src-tauri/storage/
+
+# === Binaries (38M+ — re-download or track via git-lfs, never commit) ===
+backend/bin/
+
+# === Voice models (Piper .onnx ~60M — re-download, never commit) ===
+backend/models/piper/
+*.onnx
+
+# === Pip / install artifacts ===
+backend/=*
+backend/sys
+
+# === WhatsApp auth state (session data) ===
+tools/whatsapp-bridge/auth_state/
+tools/whatsapp-bridge/.wwebjs_cache/
+tools/whatsapp-bridge/node_modules/
+
+# === Node / Tauri ===
+node_modules/
+src-tauri/target/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Environment ===
+.env
+.env.local
+.gitnexus
+
+# === SSL Certs (local mkcert — never commit private keys) ===
+backend/ssl_certs/
+
+# === Recovery / backup artifacts ===
+.recovery/
+
+# === Local Claude settings (personal preferences) ===
+.claude/settings.local.json
+
+# === Local tool configs (may contain paths/tokens) ===
+.mcp.json
+.opencode.json
+
+# === gentle-ai skill registry (auto-generated, machine-local paths) ===
+.atl/
+
+# === Logs (runtime, regenerated — never commit) ===
+logs/*.log
+logs/*.log.*
+logs/verification_audit.jsonl
+backend/logs/
+
+# === Guardian runtime state (machine-local) ===
+# Ignore everything in .guardian/ EXCEPT the shared defaults (README + config)
+.guardian/*
+!.guardian/README.md
+!.guardian/config.json
+# Guardian checkpoint branches are local-only — never push them
+# (Enforced by the pre-push hook if/when added; this is just a reminder.)
+
+# === Second Brain (Obsidian vault — machine-local, optionally synced separately) ===
+.brain/
+.fusion/
+
+# Local agent tooling and personal data (kept out of the public repo)
+.claude/
+.guardian/
+.codex/
+.agents/
+.mcp.json
+.opencode.json
+CLAUDE.md
+AGENTS.md
+storage/*.json

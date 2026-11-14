@@ -1,0 +1,147 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   COMPACT MODE — jarvis-overlay minimal
+   Activado con Ctrl+K (in-window) o Alt+Space (global, requiere plugin Rust).
+   Oculta panels laterales y deja solo lo esencial en cada pantalla.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1. CHAT (dashboard principal con .dash-layout) ────────────────────── */
+body.compact-mode #chat-screen .dash-left,
+body.compact-mode #chat-screen .dash-right,
+body.compact-mode #chat-screen .dash-resize-handle,
+body.compact-mode #chat-screen .dash-footer {
+    display: none !important;
+}
+
+body.compact-mode #chat-screen .dash-layout {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr !important;
+}
+
+body.compact-mode #chat-screen .dash-header {
+    padding: 4px 10px !important;
+    font-size: 9px !important;
+}
+
+/* Compactar header del chat — esconder labels secundarios */
+body.compact-mode #chat-screen .dash-header-right > :not(#logout-btn):not(#dash-clock) {
+    display: none !important;
+}
+body.compact-mode #chat-screen .dash-header-left .dash-header-sep:nth-of-type(n+3),
+body.compact-mode #chat-screen .dash-header-left .dash-header-label:not(:first-of-type),
+body.compact-mode #chat-screen .dash-header-left #system-version,
+body.compact-mode #chat-screen .dash-header-left #core-status,
+body.compact-mode #chat-screen .dash-header-left #ws-state {
+    display: none !important;
+}
+
+body.compact-mode #chat-screen .dash-center {
+    grid-column: 1 / -1 !important;
+    border: 1px solid var(--accent-cyan, #38d6c9);
+    box-shadow: 0 0 12px rgba(56, 214, 201, 0.15);
+}
+
+body.compact-mode #chat-screen .dash-terminal-header {
+    font-size: 9px;
+    padding: 4px 8px;
+    opacity: 0.6;
+}
+
+body.compact-mode #chat-screen #terminal-output {
+    font-size: 12px;
+}
+
+/* ── 2. LOGIN (.screen#login-screen con .login-grid) ───────────────────── */
+body.compact-mode #login-screen #login-topbar,
+body.compact-mode #login-screen #telemetry-panel,
+body.compact-mode #login-screen #network-panel,
+body.compact-mode #login-screen .login-col-left,
+body.compact-mode #login-screen .login-col-right {
+    display: none !important;
+}
+
+body.compact-mode #login-screen .login-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr auto !important;
+    padding: 12px !important;
+}
+
+body.compact-mode #login-screen .login-col-center {
+    grid-column: 1 / -1 !important;
+}
+
+/* ── 3. CALL MODE (.call-overlay con .call-col-*) ──────────────────────── */
+body.compact-mode .call-overlay.active .call-col-left,
+body.compact-mode .call-overlay.active .call-col-right,
+body.compact-mode .call-overlay.active .call-footer {
+    display: none !important;
+}
+
+body.compact-mode .call-overlay.active .call-hud {
+    grid-template-columns: 1fr !important;
+}
+
+body.compact-mode .call-overlay.active .call-col-center {
+    grid-column: 1 / -1 !important;
+}
+
+body.compact-mode .call-overlay.active .call-header > :not(.call-header-status):not(.call-header-spacer):not(#call-btn-min):not(#call-btn-bg) {
+    display: none !important;
+}
+
+/* ── 4. Indicador visual (pill top-right siempre visible) ──────────────── */
+#compact-mode-indicator {
+    position: fixed;
+    top: 6px;
+    right: 8px;
+    z-index: 99999;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-size: 10px;
+    color: #38d6c9;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(56, 214, 201, 0.6);
+    padding: 3px 9px;
+    border-radius: 2px;
+    letter-spacing: 0.6px;
+    display: none;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(56, 214, 201, 0.25);
+}
+
+body.compact-mode #compact-mode-indicator {
+    display: block;
+}
+
+/* ── 5. CALL_ACTIVE pill — mostrado cuando MIN ocultó la call ─────────── */
+#call-active-pill {
+    position: fixed;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99998;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-size: 10px;
+    color: #ff5fa2;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 95, 162, 0.7);
+    padding: 4px 12px;
+    border-radius: 14px;
+    letter-spacing: 0.6px;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 0 10px rgba(255, 95, 162, 0.4);
+    animation: callPillPulse 1.6s ease-in-out infinite;
+}
+
+#call-active-pill.visible {
+    display: block;
+}
+
+#call-active-pill::before {
+    content: "● ";
+    color: #ff5fa2;
+}
+
+@keyframes callPillPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 95, 162, 0.4); }
+    50%      { box-shadow: 0 0 18px rgba(255, 95, 162, 0.8); }
+}

@@ -1,0 +1,70 @@
+name: analytics
+
+on:
+  push:
+    paths: ["analytics/**", ".github/workflows/analytics.yml"]
+  pull_request:
+    paths: ["analytics/**", ".github/workflows/analytics.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ZEPHYRO_ANALYTICS_SOURCE: synthetic
+  ZEPHYRO_ANALYTICS_DATA: ${{ github.workspace }}/analytics/data
+  ZEPHYRO_RAW_DIR: ${{ github.workspace }}/analytics/data/synthetic/raw
+  ZEPHYRO_WAREHOUSE_PATH: ${{ github.workspace }}/analytics/data/synthetic/warehouse.duckdb
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: analytics/pyproject.toml
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Unit tests
+        run: pytest -q
+      - name: Parse dbt project
+        working-directory: analytics/dbt
+        run: |
+          mkdir -p "$(dirname "$ZEPHYRO_WAREHOUSE_PATH")"
+          dbt parse --profiles-dir .
+      - name: Run the pipeline end to end (extract -> dbt build with tests)
+        run: dagster job execute -m zephyro_analytics.definitions -j telemetry_pipeline
+      - name: Second run must land no new files (incremental extract)
+        run: |
+          before=$(find "$ZEPHYRO_RAW_DIR" -name '*.parquet' | wc -l)
+          dagster job execute -m zephyro_analytics.definitions -j telemetry_pipeline
+          after=$(find "$ZEPHYRO_RAW_DIR" -name '*.parquet' | wc -l)
+          echo "parquet files: before=$before after=$after"
+          test "$before" -eq "$after"
+      - name: Build dbt docs (lineage graph)
+        working-directory: analytics/dbt
+        run: dbt docs generate --profiles-dir . --static
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          path: analytics/dbt/target
+
+  docs:
+    needs: pipeline
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}static_index.html
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

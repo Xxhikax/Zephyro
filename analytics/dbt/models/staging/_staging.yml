@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_llm_calls
+    description: Typed, deduplicated LLM calls. Timestamps are UTC.
+    columns:
+      - name: call_id
+        data_tests: [unique, not_null]
+      - name: called_at
+        data_tests: [not_null]
+      - name: provider
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [anthropic, deepseek, gemini, openai, ollama_local, generic]
+      - name: latency_ms
+        data_tests:
+          - within_range:
+              arguments:
+                min_value: 0
+
+  - name: stg_requests
+    description: Typed, deduplicated requests. `user_key` is a salted hash, never a name.
+    columns:
+      - name: request_id
+        data_tests: [unique, not_null]
+      - name: intent
+        data_tests: [not_null]
+      - name: channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [websocket, telegram, whatsapp, cli]
+      - name: duration_ms
+        data_tests:
+          - within_range:
+              arguments:
+                min_value: 0
+
+  - name: stg_request_steps
+    description: One row per step of a request.
+    columns:
+      - name: step_id
+        data_tests: [unique, not_null]
+      - name: request_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_requests')
+                field: request_id
+
+  - name: stg_turns
+    description: Typed, deduplicated conversation turns. `session_key` and `user_key` are salted hashes.
+    columns:
+      - name: turn_id
+        data_tests: [unique, not_null]
+      - name: importance_level
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [trivial, moderate, important, critical]

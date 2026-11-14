@@ -1,0 +1,197 @@
+{
+  "youtube": {
+    "search_box": [
+      "input#search",
+      "input[name='search_query']",
+      "input[name='search']",
+      "input[placeholder='Search']",
+      "input[placeholder='Buscar']",
+      "input[aria-label='Search']",
+      "input[aria-label='Buscar']",
+      "input[title='Search']",
+      "input[title='Buscar']",
+      "#search-input input",
+      "ytd-searchbox input",
+      "form[role='search'] input",
+      "input[type='text']"
+    ],
+    "video_item": [
+      "ytd-video-renderer a#video-title",
+      "a#video-title",
+      "ytd-video-renderer",
+      "#contents ytd-video-renderer",
+      "#contents a#video-title",
+      "ytd-video-renderer #video-title",
+      "#items ytd-video-renderer",
+      "ytd-grid-video-renderer",
+      "ytd-compact-video-renderer",
+      "ytd-rich-item-renderer a#video-title-link",
+      "[aria-label*='video']"
+    ],
+    "play_button": [
+      "button.ytp-play-button",
+      ".ytp-large-play-button",
+      "button[title='Reproducir']",
+      "button[aria-label='Reproducir']",
+      "button[title='Play']",
+      "button[aria-label='Play']",
+      "button[data-title-no-tooltip='Play']",
+      "button[data-title-no-tooltip='Reproducir']"
+    ],
+    "pause_button": [
+      "button.ytp-play-button",
+      "button[title='Pausar']",
+      "button[aria-label='Pausar']",
+      "button[title='Pause']",
+      "button[aria-label='Pause']"
+    ],
+    "player_container": [
+      "#movie_player",
+      ".html5-video-player",
+      "#player-container",
+      "#player",
+      "ytd-player",
+      "#player-container-outer",
+      "video.video-stream",
+      ".video-stream.html5-main-video",
+      "#player video",
+      "video"
+    ],
+    "volume_slider": [
+      ".ytp-volume-slider",
+      "[aria-label*='volumen']",
+      "[aria-label*='volume']",
+      ".ytp-volume-panel"
+    ],
+    "fullscreen_button": [
+      "button.ytp-fullscreen-button",
+      "button[title='Pantalla completa']",
+      "button[title='Full screen']",
+      "button[aria-label='Full screen']"
+    ],
+    "cookie_accept": [
+      "button[aria-label*='Accept']",
+      "button:has-text('Accept all')",
+      "button:has-text('Accept')",
+      "button:has-text('Aceptar todo')",
+      "button:has-text('Aceptar')",
+      "button[aria-label*='Aceptar']",
+      "ytd-button-renderer:has-text('Accept')",
+      "#content ytd-button-renderer",
+      "button:has-text('Reject all')",
+      "button:has-text('Rechazar todo')"
+    ]
+  },
+  "youtube_music": {
+    "search_box": [
+      "input[placeholder='Search']",
+      "input[placeholder='Buscar']",
+      "input[aria-label='Search']",
+      "input[aria-label='Buscar']",
+      "ytmusic-search-box input",
+      "input[type='text']"
+    ],
+    "song_item": [
+      "ytmusic-responsive-list-item-renderer",
+      "ytmusic-shelf-renderer a",
+      "[aria-label*='song']",
+      "[aria-label*='cancion']",
+      "a.yt-simple-endpoint[href*='watch']"
+    ],
+    "play_button": [
+      "tp-yt-paper-icon-button[title='Reproducir']",
+      "button[aria-label='Reproducir']",
+      "yt-icon-button[aria-label='Play']",
+      "button[aria-label='Play']",
+      ".play-button"
+    ],
+    "pause_button": [
+      "tp-yt-paper-icon-button[title='Pausar']",
+      "button[aria-label='Pausar']",
+      "button[aria-label='Pause']"
+    ],
+    "player_container": [
+      "ytmusic-player-bar",
+      "#player-bar",
+      "#player-page",
+      "ytmusic-player"
+    ],
+    "volume_control": [
+      "tp-yt-paper-icon-button[aria-label*='volumen']",
+      ".volume-button",
+      "[aria-label*='volume']"
+    ],
+    "filter_chip_artists": [
+      "ytmusic-chip-cloud-chip-renderer:has-text('Artistas')",
+      "ytmusic-chip-cloud-chip-renderer:has-text('Artists')",
+      "yt-chip-cloud-chip-renderer:has-text('Artistas')"
+    ],
+    "filter_chip_albums": [
+      "ytmusic-chip-cloud-chip-renderer:has-text('Álbumes')",
+      "ytmusic-chip-cloud-chip-renderer:has-text('Albums')",
+      "yt-chip-cloud-chip-renderer:has-text('Álbumes')"
+    ],
+    "filter_chip_songs": [
+      "ytmusic-chip-cloud-chip-renderer:has-text('Canciones')",
+      "ytmusic-chip-cloud-chip-renderer:has-text('Songs')"
+    ],
+    "artist_card": [
+      "ytmusic-responsive-list-item-renderer a.yt-simple-endpoint[href*='channel/UC']",
+      "ytmusic-card-shelf-renderer a[href*='channel/UC']",
+      "a.yt-simple-endpoint[href*='channel/UC']",
+      "a[href*='channel/UC']"
+    ],
+    "album_card": [
+      "ytmusic-responsive-list-item-renderer a.yt-simple-endpoint[href*='browse/MPRE']",
+      "ytmusic-card-shelf-renderer a[href*='browse/MPRE']",
+      "ytmusic-shelf-renderer a[href*='browse/MPRE']"
+    ],
+    "play_btn_main": [
+      "ytmusic-play-button-renderer[aria-label='Reproducir']",
+      "ytmusic-play-button-renderer[aria-label='Play']",
+      "ytmusic-detail-header-renderer ytmusic-play-button-renderer",
+      "ytmusic-immersive-header-renderer ytmusic-play-button-renderer",
+      "ytmusic-playlist-shelf-renderer ~ ytmusic-play-button-renderer",
+      "ytmusic-play-button-renderer",
+      "button[aria-label='Reproducir']:not([aria-label*='leatori'])",
+      "button[aria-label='Play']:not([aria-label*='huffle'])",
+      "yt-button-renderer:has-text('Reproducir')"
+    ],
+    "first_track_in_list": [
+      "ytmusic-playlist-shelf-renderer ytmusic-responsive-list-item-renderer:first-child",
+      "ytmusic-shelf-renderer ytmusic-responsive-list-item-renderer:first-child",
+      "ytmusic-responsive-list-item-renderer:first-child"
+    ],
+    "shuffle_btn": [
+      "button[aria-label*='leatori']",
+      "button[aria-label*='huffle']",
+      "yt-button-renderer:has-text('Aleatori')"
+    ],
+    "home_first_mix_card": [
+      "ytmusic-carousel-shelf-renderer ytmusic-two-row-item-renderer:first-child a",
+      "ytmusic-carousel-shelf-renderer a.yt-simple-endpoint:first-of-type"
+    ]
+  },
+  "generic": {
+    "close_button": [
+      "button[aria-label='Cerrar']",
+      "button[aria-label='Close']",
+      "[class*='close']",
+      "[title*='Cerrar']",
+      "[title*='Close']",
+      "[aria-label*='close']"
+    ],
+    "accept_button": [
+      "button[aria-label='Aceptar']",
+      "button:has-text('Aceptar')",
+      "button:has-text('Accept')",
+      "button:has-text('OK')",
+      "button[type='submit']"
+    ],
+    "cancel_button": [
+      "button[aria-label='Cancelar']",
+      "button:has-text('Cancelar')",
+      "button:has-text('Cancel')"
+    ]
+  }
+}

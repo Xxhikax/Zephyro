@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zephyro — Agenda</title>
+  <!-- Variables compartidas del proyecto (tokens MATRIX TACTICAL) -->
+  <link rel="stylesheet" href="./style.css">
+  <!-- Estilos de la agenda (incluye reglas standalone) -->
+  <link rel="stylesheet" href="./agenda-window.css">
+</head>
+<!-- data-agenda-standalone activa el modo "ventana aparte" en agenda-window.js:
+     ocupa todo el viewport, sin drag, sin botón de cerrar custom (lo provee el SO). -->
+<body data-agenda-standalone="1">
+
+  <!-- agenda-window.js detecta este contenedor y monta la UID adentro -->
+  <div id="agenda-window"></div>
+
+  <script src="./agenda-window.js"></script>
+
+</body>
+</html>

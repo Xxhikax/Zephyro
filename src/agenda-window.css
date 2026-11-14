@@ -1,0 +1,992 @@
+/* ============================================================
+   AGENDA WINDOW — panel flotante draggable
+   Tema: dark HUD consistente con el resto del sistema.
+   ============================================================ */
+
+#agenda-window {
+    position: fixed;
+    top: 60px;
+    right: 310px;
+    width: 520px;
+    height: 580px;
+    min-width: 380px;
+    min-height: 300px;
+    background: #111917;
+    border: 1px solid #1B2A25;
+    border-radius: 6px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,136,0.06);
+    z-index: 1500;
+    display: none;
+    flex-direction: column;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    color: #CFFFEA;
+    overflow: hidden;
+    resize: both;
+}
+#agenda-window.open { display: flex; }
+
+/* ── Title bar (draggable) ── */
+#aw-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0b120f;
+    border-bottom: 1px solid #1B2A25;
+    padding: 0 10px;
+    height: 34px;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+}
+#aw-titlebar:active { cursor: grabbing; }
+
+.aw-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--primary-color, #00ff88);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.aw-title-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary-color, #00ff88);
+    box-shadow: 0 0 6px var(--primary-color, #00ff88);
+}
+
+.aw-controls {
+    display: flex;
+    gap: 6px;
+}
+.aw-btn {
+    background: transparent;
+    border: 1px solid #22332c;
+    color: #8fb8a8;
+    font-family: inherit;
+    font-size: 10px;
+    padding: 2px 7px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1.4;
+}
+.aw-btn:hover { color: var(--primary-color, #00ff88); border-color: var(--primary-color, #00ff88); }
+.aw-btn.danger:hover { color: var(--danger, #FF4B5C); border-color: var(--danger, #FF4B5C); }
+
+/* ── Tabs ── */
+#aw-tabs {
+    display: flex;
+    gap: 0;
+    background: #0a100e;
+    border-bottom: 1px solid #1B2A25;
+    flex-shrink: 0;
+}
+.aw-tab {
+    padding: 7px 16px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5BCFA6;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+.aw-tab:hover { color: #8fb8a8; }
+.aw-tab.active {
+    color: var(--primary-color, #00ff88);
+    border-bottom-color: var(--primary-color, #00ff88);
+}
+
+/* ── Body ── */
+#aw-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+.aw-pane {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: none;
+}
+.aw-pane.active { display: block; }
+.aw-pane::-webkit-scrollbar { width: 4px; }
+.aw-pane::-webkit-scrollbar-thumb { background: #22332c; border-radius: 2px; }
+
+/* ── Event list items ── */
+.aw-section-label {
+    font-size: 10px;
+    color: #5BCFA6;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 12px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.aw-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1B2A25;
+}
+.aw-section-label:first-child { margin-top: 0; }
+
+/* Motivo de frame tactical "┌─ LABEL" (espeja el UI principal de Zephyro).
+   Las variantes uni/act sobre-escriben el ::before con su glyph de categoría. */
+.aw-section-label::before {
+    content: '\250C\2500';   /* ┌─ */
+    color: var(--primary-color, #00ff88);
+    letter-spacing: -0.08em;
+    opacity: 0.85;
+    margin-right: 2px;
+}
+
+.aw-event-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-left: 3px solid #22332c;
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.025);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.aw-event-row:hover { background: rgba(255,255,255,0.05); }
+.aw-event-row.cat-university       { border-left-color: #6ad0ff; }
+.aw-event-row.cat-uni_exam         { border-left-color: #ff4d4d; }
+.aw-event-row.cat-uni_assignment   { border-left-color: #ffd700; }
+.aw-event-row.cat-course_study     { border-left-color: #b08cff; }
+.aw-event-row.cat-personal_project { border-left-color: #00ff88; }
+.aw-event-row.cat-client_project   { border-left-color: #ffaa00; }
+.aw-event-row.cat-exercise         { border-left-color: #ff6b6b; }
+.aw-event-row.cat-other            { border-left-color: #5BCFA6; }
+
+.aw-ev-time {
+    color: var(--primary-color, #00ff88);
+    font-variant-numeric: tabular-nums;
+    min-width: 42px;
+    font-size: 11px;
+}
+.aw-ev-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #CFFFEA;
+}
+.aw-ev-cat {
+    font-size: 9px;
+    color: #5BCFA6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    min-width: 72px;
+    text-align: right;
+}
+.aw-ev-del {
+    background: transparent;
+    border: none;
+    color: #3f5d4f;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+.aw-ev-del:hover { color: #FF4B5C; }
+
+.aw-ev-edit {
+    background: transparent;
+    border: none;
+    color: #3f5d4f;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+.aw-ev-edit:hover { color: #00ff88; }
+
+.aw-empty {
+    color: #3f5d4f;
+    font-style: italic;
+    padding: 8px 0;
+    font-size: 11px;
+}
+
+/* ── Event detail (expandable) ── */
+.aw-event-detail {
+    display: none;
+    padding: 8px 10px 10px 14px;
+    background: rgba(0,255,136,0.03);
+    border-left: 3px solid #1B2A25;
+    border-radius: 0 4px 4px 0;
+    margin: -4px 0 4px;
+    font-size: 11px;
+    color: #8fb8a8;
+    line-height: 1.7;
+}
+.aw-event-detail.open { display: block; }
+.aw-detail-row { display: flex; gap: 8px; }
+.aw-detail-key { color: #5BCFA6; min-width: 52px; }
+.aw-detail-val { color: #CFFFEA; }
+
+/* ── Add form ── */
+#aw-add-pane .aw-form-group {
+    margin-bottom: 12px;
+}
+#aw-add-pane label {
+    display: block;
+    font-size: 10px;
+    color: #5BCFA6;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+}
+#aw-add-pane input,
+#aw-add-pane select,
+#aw-add-pane textarea {
+    width: 100%;
+    background: #0b120f;
+    border: 1px solid #1B2A25;
+    border-radius: 4px;
+    color: #CFFFEA;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 7px 10px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+#aw-add-pane input:focus,
+#aw-add-pane select:focus,
+#aw-add-pane textarea:focus {
+    border-color: var(--primary-color, #00ff88);
+}
+#aw-add-pane select option { background: #111917; }
+#aw-add-pane .aw-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+#aw-add-pane textarea { resize: vertical; min-height: 60px; }
+
+.aw-submit-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.aw-submit {
+    background: var(--primary-color, #00ff88);
+    color: #050814;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.aw-submit:hover { opacity: 0.85; }
+.aw-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.aw-cancel-btn {
+    background: transparent;
+    border: 1px solid #22332c;
+    color: #8fb8a8;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+.aw-cancel-btn:hover { border-color: #5BCFA6; color: #CFFFEA; }
+
+.aw-feedback {
+    margin-top: 8px;
+    font-size: 11px;
+    min-height: 16px;
+}
+.aw-feedback.ok  { color: var(--primary-color, #00ff88); }
+.aw-feedback.err { color: var(--danger, #FF4B5C); }
+
+/* ── Status bar ── */
+#aw-statusbar {
+    background: #0a100e;
+    border-top: 1px solid #1B2A25;
+    padding: 4px 12px;
+    font-size: 10px;
+    color: #3f5d4f;
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+#aw-status-msg { color: #5BCFA6; }
+
+/* ── Category legend ── */
+.aw-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.aw-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #5BCFA6;
+}
+.aw-legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Inline edit form ── */
+.aw-edit-form {
+    width: 100%;
+    padding: 8px 0;
+}
+.aw-edit-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.aw-edit-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.aw-edit-row-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.aw-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+.aw-edit-field label {
+    font-size: 9px;
+    color: #5BCFA6;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.aw-edit-input {
+    background: #0b120f;
+    border: 1px solid #1B2A25;
+    border-radius: 4px;
+    color: #CFFFEA;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 8px;
+    outline: none;
+    box-sizing: border-box;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+.aw-edit-input:focus { border-color: var(--primary-color, #00ff88); }
+.aw-edit-input[type="date"],
+.aw-edit-input[type="time"] {
+    color-scheme: dark;
+}
+.aw-edit-input[type="date"]::-webkit-calendar-picker-indicator,
+.aw-edit-input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+}
+.aw-edit-input select option { background: #111917; }
+.aw-edit-notes { min-height: 50px; resize: vertical; }
+.aw-edit-title { font-weight: bold; font-size: 12px; }
+.aw-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+.aw-edit-actions .aw-submit { font-size: 10px; padding: 6px 14px; }
+.aw-edit-actions .aw-cancel-btn { font-size: 10px; padding: 6px 12px; }
+
+/* ── Calendar grid ── */
+#aw-calendar-pane {
+    overflow-x: auto;
+    padding: 0;
+}
+.aw-calendar {
+    min-width: 740px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-size: 10px;
+}
+.aw-cal-header {
+    display: flex;
+    border-bottom: 1px solid #1B2A25;
+    position: sticky;
+    top: 0;
+    background: #111917;
+    z-index: 2;
+    flex-shrink: 0;
+}
+.aw-cal-hour-col {
+    width: 50px;
+    flex-shrink: 0;
+    padding: 6px 4px;
+}
+.aw-cal-day-col {
+    flex: 1;
+    text-align: center;
+    padding: 6px 2px;
+    font-weight: bold;
+    color: #5BCFA6;
+    letter-spacing: 0.04em;
+    border-left: 1px solid #16201c;
+}
+.aw-cal-day-col.aw-cal-today {
+    color: var(--primary-color, #00ff88);
+    background: rgba(0, 255, 136, 0.05);
+}
+.aw-cal-body {
+    flex: 1;
+    overflow-y: auto;
+}
+.aw-cal-body::-webkit-scrollbar { width: 4px; }
+.aw-cal-body::-webkit-scrollbar-thumb { background: #22332c; border-radius: 2px; }
+.aw-cal-row {
+    display: flex;
+    border-bottom: 1px solid #101a16;
+    min-height: 52px;
+    position: relative;
+}
+.aw-cal-hour-cell {
+    width: 50px;
+    flex-shrink: 0;
+    padding: 2px 4px;
+    color: #3f5d4f;
+    font-size: 9px;
+    text-align: right;
+    border-right: 1px solid #16201c;
+    line-height: 1.4;
+}
+.aw-cal-cell {
+    flex: 1;
+    border-left: 1px solid #16201c;
+    position: relative;
+    overflow: hidden;
+}
+.aw-cal-event {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    border-radius: 3px;
+    padding: 2px 4px;
+    cursor: pointer;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.3;
+    border-left: 3px solid;
+    transition: filter 0.12s;
+    min-height: 10px;
+}
+.aw-cal-event:hover {
+    filter: brightness(1.3);
+}
+.aw-cal-event.cat-university       { background: rgba(106,208,255,0.18); border-color: #6ad0ff; }
+.aw-cal-event.cat-uni_exam         { background: rgba(255,77,77,0.18);   border-color: #ff4d4d; }
+.aw-cal-event.cat-uni_assignment   { background: rgba(255,215,0,0.15);   border-color: #ffd700; }
+.aw-cal-event.cat-course_study     { background: rgba(176,140,255,0.15); border-color: #b08cff; }
+.aw-cal-event.cat-personal_project { background: rgba(0,255,136,0.12);   border-color: #00ff88; }
+.aw-cal-event.cat-client_project   { background: rgba(255,170,0,0.12);   border-color: #ffaa00; }
+.aw-cal-event.cat-exercise         { background: rgba(255,107,107,0.15); border-color: #ff6b6b; }
+.aw-cal-event.cat-other            { background: rgba(90,98,128,0.12);   border-color: #5BCFA6; }
+.aw-cal-ev-title {
+    color: #CFFFEA;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: 9px;
+}
+
+/* ── Section headers with color accents ── */
+.aw-section-label.aw-section-uni::before {
+    content: '◈ ';
+    color: #6ad0ff;
+}
+.aw-section-label.aw-section-act::before {
+    content: '◎ ';
+    color: #b08cff;
+}
+
+/* ── Calendar filter note ── */
+.aw-cal-filter-note {
+    font-size: 9px;
+    color: #3f5d4f;
+    padding: 5px 10px 3px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #16201c;
+    flex-shrink: 0;
+    background: #111917;
+}
+
+/* ── Canvas data inside event detail ── */
+.aw-canvas-detail {
+    margin-top: 6px;
+}
+.aw-canvas-section {
+    border-top: 1px solid #16201c;
+    padding-top: 6px;
+    margin-top: 4px;
+}
+.aw-canvas-header {
+    font-size: 9px;
+    color: #6ad0ff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.aw-canvas-row {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    line-height: 1.6;
+}
+.aw-canvas-key {
+    color: #5BCFA6;
+    min-width: 68px;
+    font-size: 9px;
+}
+.aw-canvas-val {
+    color: #CFFFEA;
+    flex: 1;
+}
+.aw-canvas-warn { color: #ffd700; }
+.aw-canvas-loading {
+    color: #3f5d4f;
+    font-size: 10px;
+    font-style: italic;
+    padding: 4px 0;
+}
+
+/* ── Resize handle hint for calendar ── */
+#agenda-window {
+    min-width: 420px;
+}
+#aw-calendar-pane.aw-pane.active {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+.aw-cal-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.aw-cal-wrapper .aw-calendar {
+    flex: 1;
+}
+.aw-cal-wrapper .aw-cal-body {
+    max-height: none;
+    flex: 1;
+}
+
+/* ──────────────────────────────────────────────
+   TIMELINE VIEW (nueva vista por horas)
+   ─────────────────────────────────────────── */
+.aw-tl-filter-note {
+    font-size: 10px;
+    color: #6f9d87;
+    padding: 6px 10px 4px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #16201c;
+    background: #111917;
+    flex-shrink: 0;
+}
+
+#aw-calendar-pane.aw-pane.active {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.aw-tl-scroll {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+.aw-tl-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.aw-tl-scroll::-webkit-scrollbar-thumb { background: #22332c; border-radius: 2px; }
+
+.aw-tl-header {
+    display: flex;
+    position: sticky;
+    top: 0;
+    background: #111917;
+    z-index: 5;
+    border-bottom: 1px solid #1B2A25;
+    flex-shrink: 0;
+}
+.aw-tl-hour-spacer {
+    width: 54px;
+    flex-shrink: 0;
+}
+.aw-tl-day-label {
+    flex: 1;
+    text-align: center;
+    padding: 7px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7FE3BE;
+    letter-spacing: 0.05em;
+    border-left: 1px solid #16201c;
+}
+.aw-tl-day-label.aw-tl-col--today {
+    color: var(--primary-color, #00ff88);
+    background: rgba(0, 255, 136, 0.04);
+}
+
+.aw-tl-body {
+    display: flex;
+    flex: 1;
+    min-width: 600px;
+}
+.aw-tl-hours {
+    width: 54px;
+    flex-shrink: 0;
+    position: relative;
+    border-right: 1px solid #16201c;
+}
+.aw-tl-hour-label {
+    position: absolute;
+    right: 6px;
+    font-size: 10.5px;
+    color: #6f9d87;
+    font-variant-numeric: tabular-nums;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+.aw-tl-days {
+    display: flex;
+    flex: 1;
+}
+.aw-tl-col {
+    flex: 1;
+    position: relative;
+    border-left: 1px solid #16201c;
+}
+.aw-tl-col--today {
+    background: rgba(0, 255, 136, 0.02);
+}
+.aw-tl-grid-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: #16201c;
+    pointer-events: none;
+}
+.aw-tl-now-marker {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: #ff4d4d;
+    z-index: 4;
+    pointer-events: none;
+}
+.aw-tl-now-marker.hours {
+    right: 0; left: 0;
+}
+.aw-tl-event {
+    position: absolute;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    overflow: hidden;
+    border-left: 4px solid;
+    font-size: 11px;
+    line-height: 1.32;
+    box-sizing: border-box;
+    transition: filter 0.12s, box-shadow 0.12s, transform 0.08s;
+    z-index: 2;
+    /* Base oscura sólida bajo el tint de categoría → mejora contraste del texto */
+    background-color: #0c1512;
+}
+.aw-tl-event:hover {
+    filter: brightness(1.22);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+    z-index: 3;
+}
+.aw-tl-event--overlap {
+    box-shadow: 0 0 0 1px #ff4d4d;
+}
+.aw-tl-overlap-icon {
+    font-size: 11px;
+    color: #ff6b6b;
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+.aw-tl-ev-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: #FFFFFF;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.65);
+}
+.aw-tl-ev-time {
+    display: block;
+    color: rgba(218, 232, 226, 0.82);
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    margin-top: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+}
+.aw-tl-grade {
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(4, 10, 8, 0.78);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Category colors for timeline — tint (background-image) sobre la base oscura (#0c1512) */
+.aw-tl-event.cat-university       { background-image: linear-gradient(rgba(106,208,255,0.26), rgba(106,208,255,0.26)); border-color: #6ad0ff; }
+.aw-tl-event.cat-uni_exam         { background-image: linear-gradient(rgba(255,77,77,0.26),   rgba(255,77,77,0.26));   border-color: #ff4d4d; }
+.aw-tl-event.cat-uni_assignment   { background-image: linear-gradient(rgba(255,215,0,0.22),   rgba(255,215,0,0.22));   border-color: #ffd700; }
+.aw-tl-event.cat-course_study     { background-image: linear-gradient(rgba(176,140,255,0.24), rgba(176,140,255,0.24)); border-color: #b08cff; }
+.aw-tl-event.cat-personal_project { background-image: linear-gradient(rgba(0,255,136,0.20),   rgba(0,255,136,0.20));   border-color: #00ff88; }
+.aw-tl-event.cat-client_project   { background-image: linear-gradient(rgba(255,170,0,0.20),   rgba(255,170,0,0.20));   border-color: #ffaa00; }
+.aw-tl-event.cat-exercise         { background-image: linear-gradient(rgba(255,107,107,0.24), rgba(255,107,107,0.24)); border-color: #ff6b6b; }
+.aw-tl-event.cat-other            { background-image: linear-gradient(rgba(120,130,160,0.22), rgba(120,130,160,0.22)); border-color: #5BCFA6; }
+
+/* ──────────────────────────────────────────────
+   BÚSQUEDA Y CHIPS DE FILTRO
+   ─────────────────────────────────────────── */
+.aw-search-bar {
+    margin-bottom: 6px;
+}
+.aw-search-input {
+    width: 100%;
+    background: #0b120f;
+    border: 1px solid #1B2A25;
+    border-radius: 4px;
+    color: #CFFFEA;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 6px 10px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+.aw-search-input:focus {
+    border-color: var(--primary-color, #00ff88);
+}
+.aw-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+.aw-chip {
+    background: transparent;
+    border: 1px solid #1B2A25;
+    color: #5BCFA6;
+    font-family: inherit;
+    font-size: 9px;
+    padding: 2px 8px;
+    cursor: pointer;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.aw-chip:hover { color: #8fb8a8; border-color: #22332c; }
+.aw-chip.active {
+    background: rgba(0, 255, 136, 0.12);
+    border-color: var(--primary-color, #00ff88);
+    color: var(--primary-color, #00ff88);
+}
+
+/* ──────────────────────────────────────────────
+   MODAL DE CONFIRMACIÓN DARK-HUD
+   ─────────────────────────────────────────── */
+.aw-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 20, 0.75);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.aw-modal-box {
+    background: #111917;
+    border: 1px solid #22332c;
+    border-radius: 6px;
+    padding: 20px 24px;
+    min-width: 260px;
+    max-width: 380px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.aw-modal-msg {
+    color: #CFFFEA;
+    font-size: 12px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+.aw-modal-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ──────────────────────────────────────────────
+   BADGE EVENTOS RECURRENTES
+   ─────────────────────────────────────────── */
+.aw-recur-badge {
+    font-size: 9px;
+    color: var(--primary-color, #00ff88);
+    opacity: 0.7;
+    margin-left: 3px;
+    font-style: normal;
+}
+.aw-recur-icon {
+    font-size: 9px;
+    color: var(--primary-color, #00ff88);
+    opacity: 0.7;
+}
+
+/* ──────────────────────────────────────────────
+   FEEDBACK WARN
+   ─────────────────────────────────────────── */
+.aw-feedback.warn { color: #ffd700; }
+
+/* ──────────────────────────────────────────────
+   TOAST DE NOTIFICACIÓN DE EVENTOS
+   ─────────────────────────────────────────── */
+#aw-event-toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: #111917;
+    border: 1px solid var(--primary-color, #00ff88);
+    border-radius: 6px;
+    padding: 12px 16px;
+    min-width: 240px;
+    max-width: 320px;
+    box-shadow: 0 4px 24px rgba(0, 255, 136, 0.15);
+    z-index: 9500;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: #CFFFEA;
+    display: none;
+    animation: aw-toast-in 0.2s ease;
+}
+#aw-event-toast.visible { display: block; }
+.aw-toast-title {
+    color: var(--primary-color, #00ff88);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.aw-toast-time {
+    color: #5BCFA6;
+    font-size: 10px;
+    margin-bottom: 8px;
+}
+.aw-toast-btn {
+    background: transparent;
+    border: 1px solid #22332c;
+    color: #8fb8a8;
+    font-family: inherit;
+    font-size: 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.aw-toast-btn:hover { color: var(--primary-color, #00ff88); border-color: var(--primary-color, #00ff88); }
+
+@keyframes aw-toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ──────────────────────────────────────────────
+   BREAK REMINDER PILL
+   ─────────────────────────────────────────── */
+#aw-break-pill {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111917;
+    border: 1px solid #b08cff;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: #b08cff;
+    box-shadow: 0 0 20px rgba(176, 140, 255, 0.2);
+    z-index: 9400;
+    display: none;
+    animation: aw-toast-in 0.25s ease;
+}
+#aw-break-pill.visible { display: block; }
+
+/* ──────────────────────────────────────────────
+   ORB BREAK PULSE (brief glow without opening overlay)
+   ─────────────────────────────────────────── */
+#call-orb-container.aw-break-pulse {
+    animation: aw-orb-break-pulse 3s ease-in-out;
+    pointer-events: none;
+}
+@keyframes aw-orb-break-pulse {
+    0%   { filter: drop-shadow(0 0 0px #b08cff); opacity: 1; }
+    30%  { filter: drop-shadow(0 0 18px #b08cff); opacity: 1; }
+    70%  { filter: drop-shadow(0 0 12px #b08cff); opacity: 0.9; }
+    100% { filter: drop-shadow(0 0 0px #b08cff); opacity: 1; }
+}
+
+/* ============================================================
+   MODO STANDALONE — ventana aparte (agenda.html)
+   Ocupa todo el viewport; la barra de título y el botón de cerrar
+   los provee el SO (decorations=true). Ya no flota ni se arrastra.
+   ============================================================ */
+body[data-agenda-standalone] {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-primary, #0A0F0D);
+}
+body[data-agenda-standalone] #agenda-window {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 100vh;
+    min-width: 0;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    resize: none;
+    display: flex;
+}
+/* Titlebar custom deja de ser draggable; el ✕ propio se oculta (lo da el SO) */
+body[data-agenda-standalone] #aw-titlebar { cursor: default; }
+body[data-agenda-standalone] #aw-titlebar:active { cursor: default; }
+body[data-agenda-standalone] .aw-btn.danger { display: none; }

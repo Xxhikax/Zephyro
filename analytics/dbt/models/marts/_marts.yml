@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: fct_llm_calls
+    description: >
+      One row per LLM call with the price-list audit. Incremental on `called_at`.
+      `cost_drift_usd` = recorded cost - cost recomputed from `model_prices`.
+    columns:
+      - name: call_id
+        data_tests: [unique, not_null]
+      - name: model_key
+        data_tests: [not_null]
+
+  - name: fct_requests
+    description: One row per request with its steps rolled up and the share of time spent on models.
+    columns:
+      - name: request_id
+        data_tests: [unique, not_null]
+      - name: llm_time_share
+        data_tests:
+          - within_range:
+              arguments:
+                min_value: 0
+                max_value: 1.0001
+
+  - name: agg_provider_daily
+    description: Daily calls, error rate, latency p50/p95 (successful calls only) and spend per model.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [call_date, provider, model]
+
+  - name: agg_intent_performance
+    description: Success rate, latency, model time share, mismatch and negative feedback per intent and channel.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [intent, channel]
+
+  - name: agg_turns_daily
+    description: Conversation volume, sessions and memory behaviour per day.
+    columns:
+      - name: turn_date
+        data_tests: [unique, not_null]

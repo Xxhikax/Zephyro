@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Parquet landing zone written by the Dagster extraction assets. Append-only,
+      partitioned by load date; rows can repeat across loads and are deduplicated
+      in staging. Free text never reaches this layer (see extract.py).
+    meta:
+      external_location: "read_parquet('{{ env_var('ZEPHYRO_RAW_DIR') }}/{name}/*/*.parquet', hive_partitioning = true, union_by_name = true)"
+    tables:
+      - name: api_calls
+        description: One row per cloud/local LLM call (api_usage.db).
+      - name: requests
+        description: One row per user request handled by the orchestrator (task_envelopes.db).
+      - name: request_steps
+        description: The skills/LLM steps of each request, exploded from steps_json.
+      - name: turns
+        description: One row per conversation turn (conversation_history.db).

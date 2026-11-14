@@ -1,0 +1,477 @@
+/* ============================================================
+   ZEPHYRO LOGIN v2 — Tactical Command Interface
+   ============================================================ */
+
+/* ─── Variables ─────────────────────────────────────────── */
+:root {
+    --hud-green:      #00FF88;
+    --hud-green-dim:  #00cc6a;
+    --hud-green-ghost:rgba(0,255,136,0.06);
+    --hud-green-line: rgba(0,255,136,0.12);
+    --hud-red:        #ff3366;
+    --hud-amber:      #ffaa00;
+    --hud-cyan:       #00d9ff;
+    --hud-bg:         #030a06;
+    --hud-panel-bg:   rgba(3,15,8,0.88);
+    --hud-border:     rgba(0,255,136,0.15);
+    --hud-text:       #5bcfa6;
+    --hud-text-bright:#a6ffe4;
+    --hud-font:       "JetBrains Mono","Fira Code","Cascadia Code","Courier New",ui-monospace,monospace;
+}
+
+/* ─── Login Screen ──────────────────────────────────────── */
+#login-screen {
+    position:       relative;
+    overflow:       hidden;
+    background:     var(--hud-bg);
+    flex-direction: column !important;
+    justify-content:flex-start !important;
+    align-items:    stretch !important;
+    font-family:    var(--hud-font);
+}
+#login-screen * { font-family: var(--hud-font); }
+
+/* ─── Background Canvas ─────────────────────────────────── */
+#login-bg-canvas {
+    position: absolute;
+    inset:    0;
+    width:    100%;
+    height:   100%;
+    pointer-events: none;
+    z-index:  0;
+}
+
+/* Static scanline texture overlay */
+#login-screen::after {
+    content:  '';
+    position: absolute;
+    inset:    0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,            transparent             2px,
+        rgba(0,0,0,0.03)        2px,
+        rgba(0,0,0,0.03)        3px
+    );
+    pointer-events: none;
+    z-index:  50;
+}
+
+/* ─── Boot Element Transitions ──────────────────────────── */
+.boot-elem {
+    opacity:    0;
+    transform:  translateY(8px);
+    filter:     blur(4px);
+    transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
+}
+.boot-elem.boot-visible {
+    opacity:    1;
+    transform:  none;
+    filter:     none;
+}
+
+/* ─── Line-by-line reveal (network / modules) ───────────── */
+.line-hidden {
+    opacity:    0;
+    transform:  translateX(-5px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.line-visible {
+    opacity:    1;
+    transform:  none;
+}
+
+/* ─── Animations ────────────────────────────────────────── */
+@keyframes flash {
+    0%,100% { color: inherit; text-shadow: none; }
+    40%      { color: var(--hud-text-bright); text-shadow: 0 0 8px rgba(0,255,136,0.6); }
+}
+
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+}
+
+@keyframes glitchNormal {
+    0%   { clip-path: none; transform: none; }
+    10%  { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 1px); color: var(--hud-cyan); }
+    20%  { clip-path: inset(50% 0 30% 0); transform: translate(3px, -1px); color: var(--hud-red); }
+    30%  { clip-path: none; transform: none; color: inherit; }
+    60%  { clip-path: inset(5% 0 80% 0); transform: translate(-2px, 0); }
+    65%  { clip-path: none; transform: none; }
+    100% { clip-path: none; transform: none; color: inherit; }
+}
+
+@keyframes glitchBurst {
+    0%   { clip-path: none; transform: none; }
+    8%   { clip-path: inset(0 0 70% 0); transform: translate(-6px, 2px) skewX(-2deg); color: var(--hud-cyan); }
+    16%  { clip-path: inset(30% 0 40% 0); transform: translate(6px, -2px) skewX(2deg); color: var(--hud-red); }
+    24%  { clip-path: inset(70% 0 0 0); transform: translate(-4px, 1px); color: var(--hud-amber); }
+    32%  { clip-path: none; transform: none; color: inherit; }
+    50%  { clip-path: inset(10% 0 75% 0); transform: translate(-3px, 0); }
+    56%  { clip-path: inset(40% 0 30% 0); transform: translate(3px, 0); }
+    62%  { clip-path: none; transform: none; }
+    80%  { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 1px); }
+    86%  { clip-path: none; transform: none; }
+    100% { clip-path: none; transform: none; color: inherit; }
+}
+
+@keyframes amberPulse {
+    0%,100% { border-color: rgba(255,170,0,0.25); }
+    50%     { border-color: rgba(255,170,0,0.70); box-shadow: 0 0 8px rgba(255,170,0,0.3); }
+}
+
+.glitch-normal { animation: glitchNormal 0.35s ease-out forwards; }
+.glitch-burst  { animation: glitchBurst  0.60s ease-out forwards; }
+.flash         { animation: flash 0.5s ease-out; }
+.shake         { animation: shake 0.45s ease-out; }
+
+/* ─── Grid Layout ───────────────────────────────────────── */
+.login-grid {
+    position: relative;
+    z-index:  1;
+    display:  grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    flex:     1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ─── Topbar ────────────────────────────────────────────── */
+#login-topbar {
+    grid-column: 1 / -1;
+    grid-row:    1;
+    display:     flex;
+    align-items: center;
+    justify-content: space-between;
+    padding:     6px 16px;
+    border-bottom: 1px solid var(--hud-border);
+    background:  rgba(3,15,8,0.6);
+    font-size:   0.60rem;
+    color:       var(--hud-text);
+    letter-spacing: 0.08em;
+    z-index:     10;
+}
+
+.topbar-left, .topbar-right {
+    display:     flex;
+    align-items: center;
+    gap:         12px;
+}
+.topbar-center {
+    font-size:  0.62rem;
+    color:      rgba(0,255,136,0.35);
+    letter-spacing: 0.12em;
+}
+
+.status-dot {
+    display:       inline-block;
+    width:         5px;
+    height:        5px;
+    border-radius: 50%;
+}
+.status-dot.green  { background: var(--hud-green);  box-shadow: 0 0 4px var(--hud-green);  }
+.status-dot.amber  { background: var(--hud-amber);  box-shadow: 0 0 4px var(--hud-amber);  }
+.status-dot.red    { background: var(--hud-red);    box-shadow: 0 0 4px var(--hud-red);    }
+
+/* ─── Bottombar ─────────────────────────────────────────── */
+#login-bottombar {
+    grid-column: 1 / -1;
+    grid-row:    3;
+    display:     flex;
+    align-items: center;
+    justify-content: space-between;
+    padding:     5px 16px;
+    border-top:  1px solid var(--hud-border);
+    background:  rgba(3,15,8,0.6);
+    font-size:   0.58rem;
+    color:       rgba(0,255,136,0.30);
+    letter-spacing: 0.08em;
+}
+
+/* ─── Columns ───────────────────────────────────────────── */
+.login-col {
+    display:    flex;
+    flex-direction: column;
+    padding:    16px 12px;
+    gap:        10px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.login-col-left, .login-col-right {
+    border-right: 1px solid var(--hud-border);
+}
+.login-col-right { border-right: none; border-left: 1px solid var(--hud-border); }
+
+.login-col-center {
+    align-items:     center;
+    justify-content: center;
+    gap:             20px;
+}
+
+/* ─── HUD Panels ────────────────────────────────────────── */
+.hud-panel {
+    background: var(--hud-panel-bg);
+    border:     1px solid var(--hud-border);
+    padding:    8px 10px;
+    flex-shrink: 0;
+}
+
+.hud-panel-title {
+    font-size:      0.58rem;
+    color:          var(--hud-green-dim);
+    letter-spacing: 0.15em;
+    margin-bottom:  6px;
+    padding-bottom: 4px;
+    border-bottom:  1px solid var(--hud-green-line);
+    text-transform: uppercase;
+}
+
+.panel-content {
+    font-size:  0.63rem;
+    color:      var(--hud-text);
+    line-height: 1.7;
+}
+
+/* ─── Telemetry Panel ───────────────────────────────────── */
+.telemetry-row {
+    display:     flex;
+    align-items: center;
+    gap:         6px;
+    margin-bottom: 3px;
+}
+.telemetry-label {
+    flex:      0 0 90px;
+    font-size: 0.60rem;
+    color:     rgba(0,255,136,0.50);
+    text-transform: lowercase;
+}
+.telemetry-value {
+    flex:       1;
+    font-size:  0.65rem;
+    color:      var(--hud-text-bright);
+    min-width:  50px;
+}
+.telemetry-value.ready    { color: var(--hud-green); }
+.telemetry-value.degraded { color: var(--hud-amber); }
+
+.telemetry-bar-track {
+    flex:           0 0 40px;
+    height:         3px;
+    background:     rgba(0,255,136,0.10);
+    border-radius:  2px;
+    overflow:       hidden;
+}
+.telemetry-bar-fill {
+    height:         3px;
+    background:     var(--hud-green);
+    width:          0%;
+    transition:     width 1s ease;
+    border-radius:  2px;
+}
+
+/* ─── Network Panel ─────────────────────────────────────── */
+.network-node {
+    display:    flex;
+    align-items:center;
+    gap:        4px;
+    font-size:  0.62rem;
+    color:      var(--hud-text);
+    line-height:1.6;
+    white-space: nowrap;
+}
+.net-pre       { color: rgba(0,255,136,0.30); }
+.net-dot-on    { color: var(--hud-green); font-size: 0.55rem; }
+.net-dot-off   { color: rgba(255,51,102,0.55); font-size: 0.55rem; }
+
+/* ─── Modules Panel ─────────────────────────────────────── */
+.module-item {
+    display:    flex;
+    align-items:center;
+    gap:        5px;
+    font-size:  0.62rem;
+    color:      var(--hud-text);
+    line-height:1.7;
+}
+.mod-dot-on   { color: var(--hud-green);  font-size: 0.55rem; }
+.mod-dot-idle { color: var(--hud-amber);  font-size: 0.55rem; }
+
+/* ─── Routing Panel ─────────────────────────────────────── */
+.routing-row {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    font-size:   0.61rem;
+    color:       var(--hud-text);
+    line-height: 1.65;
+}
+.routing-tier { color: rgba(0,255,136,0.40); flex: 0 0 48px; }
+.routing-name { color: var(--hud-text-bright); }
+
+/* ─── Events Panel ──────────────────────────────────────── */
+.event-item {
+    display:     flex;
+    align-items: flex-start;
+    gap:         6px;
+    font-size:   0.61rem;
+    color:       var(--hud-text);
+    line-height: 1.65;
+}
+.event-time { color: rgba(0,255,136,0.40); flex-shrink: 0; }
+.event-text { color: var(--hud-text-bright); }
+
+/* ─── Security Panel ────────────────────────────────────── */
+.security-row {
+    display:     flex;
+    align-items: center;
+    justify-content: space-between;
+    gap:         6px;
+    font-size:   0.60rem;
+    line-height: 1.7;
+}
+.sec-lbl { color: rgba(0,255,136,0.45); }
+.sec-val  { color: var(--hud-text-bright); }
+.sec-val.warn { color: var(--hud-red); }
+
+/* ─── Warning Panel ─────────────────────────────────────── */
+#warning-panel {
+    border-color: rgba(255,170,0,0.30);
+    animation:    amberPulse 2.2s ease-in-out infinite;
+}
+#warning-panel .hud-panel-title { color: var(--hud-amber); }
+.hud-warn-item {
+    font-size:  0.62rem;
+    color:      var(--hud-amber);
+    line-height:1.7;
+}
+.hud-warn-item::before { content: '⚠ '; opacity: 0.7; }
+
+/* ─── Orb Container ─────────────────────────────────────── */
+#orb-container {
+    width:     220px;
+    height:    220px;
+    position:  relative;
+    flex-shrink:0;
+}
+
+/* ─── Login Title Block ─────────────────────────────────── */
+#login-title-block {
+    text-align: center;
+    line-height: 1.2;
+}
+
+.jarvis-title {
+    font-size:      2.3rem;
+    font-weight:    700;
+    color:          var(--hud-green);
+    letter-spacing: 0.70rem;
+    padding-left:   0.70rem; /* compensate trailing letter-spacing for visual centering */
+    text-transform: uppercase;
+    text-shadow:    0 0 16px rgba(0,255,136,0.45), 0 0 32px rgba(0,255,136,0.18);
+    display:        block;
+}
+
+.jarvis-subtitle {
+    font-size:      0.65rem;
+    color:          rgba(0,255,136,0.40);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    display:        block;
+    margin-top:     4px;
+}
+
+/* ─── Login Form ────────────────────────────────────────── */
+#login-form-container {
+    width:     100%;
+    max-width: 300px;
+}
+
+.hud-input-group {
+    display:        flex;
+    flex-direction: column;
+    gap:            6px;
+    margin-bottom:  8px;
+}
+
+.hud-input-label {
+    font-size:      0.58rem;
+    color:          rgba(0,255,136,0.45);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.hud-input {
+    background:    rgba(0,255,136,0.04);
+    border:        1px solid rgba(0,255,136,0.25);
+    color:         var(--hud-text-bright);
+    font-family:   var(--hud-font);
+    font-size:     0.80rem;
+    padding:       7px 10px;
+    outline:       none;
+    width:         100%;
+    box-sizing:    border-box;
+    transition:    border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.05em;
+}
+.hud-input::placeholder { color: rgba(0,255,136,0.20); }
+.hud-input:focus {
+    border-color: var(--hud-green);
+    box-shadow:   0 0 8px rgba(0,255,136,0.20);
+}
+
+.hud-btn {
+    background:    transparent;
+    border:        1px solid rgba(0,255,136,0.40);
+    color:         var(--hud-green);
+    font-family:   var(--hud-font);
+    font-size:     0.70rem;
+    letter-spacing:0.20em;
+    text-transform:uppercase;
+    padding:       8px 20px;
+    cursor:        pointer;
+    width:         100%;
+    transition:    background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.hud-btn:hover {
+    background:    rgba(0,255,136,0.08);
+    border-color:  var(--hud-green);
+    box-shadow:    0 0 12px rgba(0,255,136,0.20);
+}
+.hud-btn:active { background: rgba(0,255,136,0.14); }
+
+.hud-error {
+    color:         var(--hud-red);
+    font-size:     0.60rem;
+    text-align:    center;
+    min-height:    18px;
+    letter-spacing:0.08em;
+    margin-top:    4px;
+}
+
+/* ─── Encrypted Footer ──────────────────────────────────── */
+#login-encrypted {
+    font-size:  0.55rem;
+    color:      rgba(0,255,136,0.20);
+    text-align: center;
+    letter-spacing:0.10em;
+    line-height:1.6;
+}
+
+/* ─── Uptime / Clock ────────────────────────────────────── */
+#login-uptime, #login-clock {
+    font-size:  0.60rem;
+    color:      var(--hud-text);
+    letter-spacing:0.06em;
+}
+
+/* ─── prefers-reduced-motion ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .boot-elem, .line-hidden { transition: none; }
+    * { animation: none !important; }
+    .jarvis-title  { text-shadow: none; }
+    .status-dot    { box-shadow: none; }
+    .hud-input:focus { box-shadow: none; }
+}

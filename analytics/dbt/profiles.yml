@@ -1,0 +1,9 @@
+zephyro_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('ZEPHYRO_WAREHOUSE_PATH') }}"
+      threads: 4
+      settings:
+        TimeZone: UTC

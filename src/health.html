@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis — Salud</title>
+  <!-- Variables compartidas del proyecto -->
+  <link rel="stylesheet" href="./style.css">
+  <!-- Estilos específicos de la ventana Salud -->
+  <link rel="stylesheet" href="./health.css">
+</head>
+<body>
+
+<div id="health-app">
+
+  <!-- ── Sidebar izquierdo (240px) ──────────────────────────── -->
+  <aside class="hw-sidebar">
+    <div class="hw-sidebar-header">
+      <div class="hw-logo-title">JARVIS // SALUD</div>
+      <div class="hw-logo-sub">Panel de bienestar integral</div>
+    </div>
+
+    <!-- Nav items inyectados por nav.js -->
+    <nav id="hw-nav"></nav>
+
+    <div class="hw-sidebar-footer">
+      <span id="hw-footer-racha">STREAK · —</span>
+      <span id="hw-footer-kcal">KCAL_LEFT · —</span>
+      <button id="hw-header-refresh" class="hw-btn-ghost" style="margin-top:6px;font-size:10px">↻ Refrescar</button>
+    </div>
+  </aside>
+
+  <!-- ── Panel central ───────────────────────────────────────── -->
+  <main class="hw-main" id="hw-main-content">
+
+    <!-- Panel Nutrición -->
+    <section id="hw-panel-nutricion" class="hw-panel" style="display:flex">
+      <div class="hw-empty">Cargando nutrición…</div>
+    </section>
+
+    <!-- Panel Ejercicio -->
+    <section id="hw-panel-ejercicio" class="hw-panel" style="display:none">
+      <div class="hw-empty">Cargando ejercicio…</div>
+    </section>
+
+    <!-- Panel Agua -->
+    <section id="hw-panel-agua" class="hw-panel" style="display:none">
+      <div class="hw-empty">Cargando agua…</div>
+    </section>
+
+    <!-- Panel Pasos -->
+    <section id="hw-panel-pasos" class="hw-panel" style="display:none">
+      <div class="hw-empty">Cargando pasos…</div>
+    </section>
+
+    <!-- Panel Resumen -->
+    <section id="hw-panel-resumen" class="hw-panel" style="display:none">
+      <div class="hw-empty">Cargando resumen…</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Scripts en orden: API → Charts → Nav → Paneles → Bootstrap -->
+<script src="./health/api.js"></script>
+<script src="./health/charts.js"></script>
+<script src="./health/nav.js"></script>
+<script src="./health/panel-nutrition.js"></script>
+<script src="./health/panel-fitness.js"></script>
+<script src="./health/panel-water.js"></script>
+<script src="./health/panel-steps.js"></script>
+<script src="./health/panel-summary.js"></script>
+<script src="./health.js"></script>
+
+</body>
+</html>

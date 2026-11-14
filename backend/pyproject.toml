@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zephyro-terminal"
+version = "0.1.0"
+description = "Zephyro CLI — jarvis-terminal TUI"
+requires-python = ">=3.11"
+
+[project.scripts]
+zephyro = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli"]

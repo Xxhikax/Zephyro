@@ -1,0 +1,92 @@
+/* ============================================
+   AGENDA PANEL — sidebar derecho del HUD
+   Walking skeleton: render simple HOY / PRÓXIMOS.
+   ============================================ */
+
+:root {
+    --cat-university: #6ad0ff;
+    --cat-course_study: #b08cff;
+    --cat-personal_project: #00ff88;
+    --cat-client_project: #ffaa00;
+    --cat-exercise: #ff6b6b;
+    --cat-other: #8b92b0;
+}
+
+#agenda-panel {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+}
+
+.agenda-group {
+    margin-bottom: 8px;
+}
+
+.agenda-group-label {
+    color: rgba(45,214,127,0.5);
+    font-size: 9px;
+    letter-spacing: 0.13em;
+    margin: 4px 0 2px;
+    text-transform: uppercase;
+}
+
+.agenda-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 10.5px;
+    padding: 2px 0 4px;
+}
+
+.agenda-event {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 4px 6px;
+    border-left: 2px solid var(--cat-other);
+    margin-bottom: 3px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0 3px 3px 0;
+}
+
+.agenda-event.cat-university    { border-left-color: var(--cat-university); }
+.agenda-event.cat-course_study  { border-left-color: var(--cat-course_study); }
+.agenda-event.cat-personal_project { border-left-color: var(--cat-personal_project); }
+.agenda-event.cat-client_project { border-left-color: var(--cat-client_project); }
+.agenda-event.cat-exercise      { border-left-color: var(--cat-exercise); }
+
+.agenda-ev-title {
+    font-size: 11px;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.agenda-ev-time {
+    font-size: 9px;
+    color: var(--primary-color);
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+}
+
+#agenda-refresh-btn,
+#agenda-open-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 10px;
+    padding: 2px 6px;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+#agenda-refresh-btn:hover,
+#agenda-open-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}

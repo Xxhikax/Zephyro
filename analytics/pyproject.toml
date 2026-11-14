@@ -1,0 +1,31 @@
+[project]
+name = "zephyro-analytics"
+version = "0.1.0"
+description = "Telemetry pipeline for the Zephyro assistant: SQLite -> Parquet -> dbt/DuckDB, orchestrated by Dagster."
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "dagster==1.13.30",
+    "dagster-dbt==0.29.30",
+    "dagster-webserver==1.13.30",
+    "dbt-core==1.12.7",
+    "dbt-duckdb==1.11.1",
+    "duckdb==2.0.0",
+    "pyarrow==26.0.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["zephyro_analytics*"]
+
+[tool.dagster]
+module_name = "zephyro_analytics.definitions"
+code_location_name = "zephyro_analytics"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

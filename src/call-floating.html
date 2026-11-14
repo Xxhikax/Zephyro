@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Zephyro · Call</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+            background: rgba(3, 10, 15, 0.94);
+            color: #8ce3b7;
+            overflow: hidden;
+            user-select: none;
+            -webkit-app-region: drag;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            border: 1px solid rgba(0, 255, 136, 0.35);
+            border-radius: 8px;
+        }
+        .fl-strip {
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            flex-shrink: 0;
+        }
+        .fl-diag {
+            border-top: 1px solid rgba(255, 205, 85, 0.25);
+            padding: 10px 12px;
+            -webkit-app-region: no-drag;
+            background: rgba(6, 18, 26, 0.9);
+            display: none;
+        }
+        .fl-diag.visible { display: block; }
+        .fl-diag-title {
+            font-size: 10.5px;
+            color: #FFCD55;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .fl-diag-summary {
+            font-size: 10.5px;
+            color: #cfe6d9;
+            margin-bottom: 8px;
+            line-height: 1.45;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .fl-diag-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .fl-diag-btn {
+            flex: 1;
+            padding: 6px 4px;
+            background: rgba(0, 30, 20, 0.7);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #cfe6d9;
+            font-family: inherit;
+            font-size: 9.5px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .fl-diag-btn.primary { border-color: #22D3EE; color: #22D3EE; }
+        .fl-diag-btn.danger  { border-color: #FF5252; color: #FF5252; }
+        .fl-diag-btn:hover   { background: rgba(0, 60, 40, 0.6); }
+        .fl-orb {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00FF88 0%, rgba(0, 255, 136, 0.2) 60%, transparent 100%);
+            position: relative;
+            justify-self: center;
+            transition: background 200ms;
+        }
+        .fl-orb::after {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            background: currentColor;
+            color: #00FF88;
+            box-shadow: 0 0 14px currentColor;
+            animation: fl-pulse 1.6s ease-in-out infinite;
+        }
+        body.phase-thinking .fl-orb::after { color: #FFA726; }
+        body.phase-speaking .fl-orb::after { color: #06B6D4; animation-duration: 0.8s; }
+        body.phase-idle .fl-orb::after     { color: #1f5a4a; }
+        @keyframes fl-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.15); opacity: 0.6; }
+        }
+        .fl-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+            font-size: 11px;
+        }
+        .fl-phase {
+            color: #00FF88;
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            font-weight: 600;
+        }
+        body.phase-thinking .fl-phase { color: #FFA726; }
+        body.phase-speaking .fl-phase { color: #06B6D4; }
+        body.phase-idle .fl-phase     { color: #4a8c72; }
+        .fl-sub {
+            color: #4a8c72;
+            font-size: 9.5px;
+            letter-spacing: 1.5px;
+        }
+        .fl-dur {
+            color: #d6ffea;
+            font-variant-numeric: tabular-nums;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        .fl-pomo-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 2px;
+            font-size: 10.5px;
+            letter-spacing: 0.6px;
+        }
+        .fl-pomo-phase {
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 9.5px;
+            letter-spacing: 1px;
+        }
+        .fl-pomo-phase[data-phase="work"]  { color: #FFEB3B; border: 1px solid rgba(255,235,59,0.4); }
+        .fl-pomo-phase[data-phase="break"] { color: #00CC66; border: 1px solid rgba(0,204,102,0.4); }
+        .fl-pomo-cycle { color: #8ce3b7; font-variant-numeric: tabular-nums; }
+        .fl-pomo-next  { color: #4a8c72; font-size: 9.5px; }
+        .fl-actions {
+            display: flex;
+            gap: 6px;
+            -webkit-app-region: no-drag;
+        }
+        .fl-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 136, 0.35);
+            background: transparent;
+            color: #8ce3b7;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 120ms;
+        }
+        .fl-btn:hover {
+            border-color: #00FF88;
+            color: #d6ffea;
+        }
+        .fl-btn.end {
+            border-color: #FF5252;
+            color: #FF5252;
+        }
+        .fl-btn.end:hover {
+            background: rgba(255, 82, 82, 0.15);
+        }
+    </style>
+</head>
+<body class="phase-listening">
+    <div class="fl-strip">
+        <div class="fl-orb"></div>
+        <div class="fl-info">
+            <span class="fl-phase" id="fl-phase">LISTENING</span>
+            <span class="fl-sub" id="fl-sub">zephyro · call</span>
+            <span class="fl-dur" id="fl-dur">00:00</span>
+            <span class="fl-dur" id="fl-pomo" style="display:none;color:#FFEB3B">&#9201; --:--</span>
+            <span class="fl-pomo-row">
+                <span class="fl-pomo-phase" id="fl-pomo-phase"></span>
+                <span class="fl-pomo-cycle" id="fl-pomo-cycle"></span>
+                <span class="fl-pomo-next"  id="fl-pomo-next"></span>
+            </span>
+        </div>
+        <div class="fl-actions">
+            <button class="fl-btn" id="fl-restore" title="Restore">↖</button>
+            <button class="fl-btn end" id="fl-end" title="End call">✕</button>
+        </div>
+    </div>
+    <div class="fl-diag" id="fl-diag">
+        <div class="fl-diag-title">⚠ Diagnóstico pendiente</div>
+        <div class="fl-diag-summary" id="fl-diag-summary">—</div>
+        <div class="fl-diag-actions">
+            <button class="fl-diag-btn primary" id="fd-view">Ver</button>
+            <button class="fl-diag-btn danger" id="fd-ignore">Ignorar</button>
+            <button class="fl-diag-btn" id="fd-more">+Contexto</button>
+        </div>
+    </div>
+    <script src="./call-floating.js"></script>
+</body>
+</html>
