@@ -71,31 +71,21 @@ def client():
 # Unit tests — faster-whisper STT
 # ---------------------------------------------------------------------------
 
-def _cuda_available() -> bool:
-    """Returns True if CUDA is available for CTranslate2/faster-whisper."""
-    try:
-        import ctranslate2
-        return bool(ctranslate2.get_supported_compute_types("cuda"))
-    except Exception:
-        return False
-
-
 class TestSTTUnit:
-    @pytest.mark.skipif(
-        _cuda_available(),
-        reason="CUDA is available — STT uses CUDA, test expects CPU path; skip on GPU machines",
-    )
     def test_init_loads_faster_whisper(self):
-        """STT.__init__ completes with a mocked WhisperModel."""
+        """STT tries CUDA first and falls back to CPU when loading on CUDA fails."""
         with patch("modules.voice.stt.WhisperModel") as MockModel:
-            mock_instance = MagicMock()
-            MockModel.return_value = mock_instance
+            cpu_instance = MagicMock()
+            MockModel.side_effect = [RuntimeError("no CUDA device"), cpu_instance]
 
             from modules.voice.stt import STT
             stt = STT(model_size="base")
 
-            MockModel.assert_called_once_with("base", device="cpu", compute_type="int8")
-            assert stt.model is mock_instance
+            assert MockModel.call_args_list == [
+                (("base",), {"device": "cuda", "compute_type": "int8"}),
+                (("base",), {"device": "cpu", "compute_type": "int8"}),
+            ]
+            assert stt.model is cpu_instance
             assert stt.sample_rate == 16000
 
     def test_transcribe_none_returns_empty(self):
@@ -108,10 +98,6 @@ class TestSTTUnit:
             assert result == ""
             stt.model.transcribe.assert_not_called()
 
-    @pytest.mark.skipif(
-        _cuda_available(),
-        reason="CUDA is available — STT uses CUDA path, test expects CPU mock path; skip on GPU machines",
-    )
     def test_transcribe_returns_joined_segments(self):
         """transcribe() joins segment texts from the faster-whisper generator."""
         with patch("modules.voice.stt.WhisperModel") as MockModel:
