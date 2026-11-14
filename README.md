@@ -84,3 +84,16 @@ analytics/          data engineering: Dagster + dbt telemetry pipeline
 research/           data science: reasoning-router evaluation
 docs/adr/           architecture decision records
 ```
+
+## About this repository's history
+
+This repository is a **clean snapshot**, not the original development repo. Zephyro
+was built in a private repository over about seven months (168 commits on the main
+line, from April 2026). That history contained personal data (conversation
+summaries, local paths, contact identifiers) and was written while I used the
+assistant day to day, so I published the final state with a fresh history instead of
+rewriting the old one. The code, tests, ADRs, pipeline and study you see here are
+exactly the finished project; only the commit log was reset.
+
+The decision records in [`docs/adr/`](docs/adr) document the reasoning that the
+commit log would otherwise show.
